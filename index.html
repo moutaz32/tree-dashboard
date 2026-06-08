@@ -3,188 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة TREE Warehouse | المركز الذكي</title>
-    <!-- CSS & Frameworks -->
+    <title>TREE Warehouse | لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
-        .sidebar-active { background: #059669; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2); }
-        .upload-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 2px dashed #e2e8f0; }
-        .upload-card:hover { border-color: #10b981; background: #f0fdf4; transform: translateY(-8px); }
-        .btn-tree { background: #064e3b; transition: all 0.3s; }
-        .btn-tree:hover { background: #065f46; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        .sidebar-active { background: #10b981; color: white; }
+        .loader { border-top-color: #10b981; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body>
 
-    <div class="min-h-screen flex flex-col md:flex-row">
+    <div id="app" class="min-h-screen flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <aside class="w-full md:w-80 bg-[#020617] text-white p-8 flex flex-col shadow-2xl z-50">
-            <!-- الـ LOGO -->
-            <div class="flex flex-col items-center mb-12">
-                <div class="w-28 h-28 bg-white rounded-[2rem] p-3 shadow-2xl mb-5 flex items-center justify-center overflow-hidden border-4 border-emerald-500/20">
-                    <!-- ضع رابط اللوجو الخاص بك هنا -->
-                    <img src="logo.png" alt="TREE Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/490/490154.png'" class="w-full h-full object-contain">
+        <aside class="w-full md:w-64 bg-slate-900 text-white p-6 flex flex-col shadow-xl">
+            <!-- اللوجو الخاص بك -->
+            <div class="flex flex-col items-center gap-3 mb-10">
+                <div class="w-24 h-24 bg-white rounded-2xl p-2 shadow-lg overflow-hidden">
+                    <img src="logo.png" alt="TREE Logo" class="w-full h-full object-contain">
                 </div>
-                <h1 class="text-3xl font-[900] tracking-tighter">TREE <span class="text-emerald-500">WAREHOUSE</span></h1>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Inventory Management OS</p>
+                <h1 class="text-xl font-bold tracking-tight text-center">TREE <span class="text-green-500 text-center">WAREHOUSE</span></h1>
             </div>
-
-            <nav class="space-y-4 flex-1">
-                <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-4 p-4 rounded-2xl sidebar-active transition-all">
-                    <i data-lucide="layout-dashboard"></i> <span class="font-bold text-lg">الرئيسية</span>
+            
+            <nav class="space-y-3 flex-1">
+                <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-btn sidebar-active w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition text-right">
+                    <i data-lucide="home" class="w-5 h-5"></i> الرئيسية
                 </button>
-                <button onclick="showSection('uploads')" id="nav-uploads" class="nav-btn w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-800 transition-all text-slate-400 hover:text-white">
-                    <i data-lucide="file-up"></i> <span class="font-bold text-lg">رفع الملفات</span>
+                <button onclick="showSection('upload')" id="nav-upload" class="nav-btn text-slate-300 w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition text-right">
+                    <i data-lucide="file-up" class="w-5 h-5"></i> رفع البيانات (Excel)
                 </button>
-                <button onclick="showSection('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-800 transition-all text-slate-400 hover:text-white">
-                    <i data-lucide="database"></i> <span class="font-bold text-lg">المخزن المباشر</span>
+                <button onclick="showSection('inventory')" id="nav-inventory" class="nav-btn text-slate-300 w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition text-right">
+                    <i data-lucide="package" class="w-5 h-5"></i> المخزون المباشر
                 </button>
             </nav>
 
-            <div class="mt-auto bg-slate-900/50 p-5 rounded-3xl border border-slate-800">
-                <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
-                    <p class="text-xs text-slate-300 font-bold">متصل بـ Firebase ✅</p>
+            <div class="mt-auto pt-6 border-t border-slate-800 text-center">
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Online System</span>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Area -->
-        <main class="flex-1 p-6 md:p-12 overflow-y-auto custom-scroll">
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
             
             <!-- Dashboard Section -->
             <div id="section-dashboard" class="section">
-                <div class="mb-12">
-                    <h2 class="text-4xl font-[900] text-slate-900">أهلاً بك في TREE 👋</h2>
-                    <p class="text-slate-500 mt-2 text-lg font-medium">نظرة سريعة على ما يحدث في مستودعك الآن</p>
-                </div>
+                <header class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800">أهلاً بك، مدير TREE 👋</h2>
+                    <p class="text-slate-500">إليك حالة المستودع اليوم</p>
+                </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest relative">إجمالي قطع المخزن</p>
-                        <h3 id="stat-total" class="text-5xl font-black mt-2 relative">0</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="box"></i></div>
+                        </div>
+                        <h3 class="text-slate-500 text-sm mb-1 font-bold">إجمالي القطع</h3>
+                        <p id="stat-total" class="text-3xl font-black text-slate-800">0</p>
                     </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest relative text-amber-600">النواقص الحرجة</p>
-                        <h3 id="stat-low" class="text-5xl font-black mt-2 text-amber-600 relative">0</h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="alert-triangle"></i></div>
+                        </div>
+                        <h3 class="text-slate-500 text-sm mb-1 font-bold">النواقص</h3>
+                        <p id="stat-low" class="text-3xl font-black text-amber-600">0</p>
                     </div>
-                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
-                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest relative">عدد المواقع النشطة</p>
-                        <h3 id="stat-locs" class="text-5xl font-black mt-2 relative">0</h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="p-3 bg-green-50 text-green-600 rounded-xl"><i data-lucide="map-pin"></i></div>
+                        </div>
+                        <h3 class="text-slate-500 text-sm mb-1 font-bold">الأرفف النشطة</h3>
+                        <p id="stat-locs" class="text-3xl font-black text-slate-800">0</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Uploads Section -->
-            <div id="section-uploads" class="section hidden">
+            <!-- Upload Section (3 Locations) -->
+            <div id="section-upload" class="section hidden">
                 <div class="mb-10 text-right">
-                    <h2 class="text-3xl font-[900] text-slate-900">مركز رفع وتحديث البيانات 📂</h2>
-                    <p class="text-slate-500 mt-2">النظام يعالج مشاكل الإكسيل تلقائياً (علامات ' والشرطات والكسور)</p>
+                    <h2 class="text-2xl font-bold text-slate-800">مركز رفع البيانات 📂</h2>
+                    <p class="text-slate-500">قم برفع الملفات لتحديث المخزون والكتالوج (مع التنظيف التلقائي)</p>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- 1. Catalog -->
-                    <div class="upload-card bg-white p-8 rounded-[3rem] shadow-sm flex flex-col items-center text-center">
-                        <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                            <i data-lucide="shopping-bag" class="w-10 h-10"></i>
-                        </div>
-                        <h3 class="text-xl font-[900] mb-2 text-slate-800">كتالوج المنتجات</h3>
-                        <p class="text-sm text-slate-400 mb-8 px-4">رفع الأسماء والباركودات الرسمية والكميات الافتراضية</p>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-dashed border-slate-200 text-center hover:border-blue-400 transition">
+                        <i data-lucide="shopping-bag" class="w-10 h-10 text-blue-500 mx-auto mb-4"></i>
+                        <h4 class="font-bold mb-4">رفع الكتالوج</h4>
                         <input type="file" id="upload-catalog" class="hidden" accept=".xlsx, .xls">
-                        <button onclick="document.getElementById('upload-catalog').click()" class="btn-tree w-full text-white py-5 rounded-2xl font-bold text-lg shadow-xl">اختر ملف الكتالوج</button>
+                        <button onclick="document.getElementById('upload-catalog').click()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700">اختيار ملف</button>
                     </div>
 
-                    <!-- 2. Locations -->
-                    <div class="upload-card bg-white p-8 rounded-[3rem] shadow-sm flex flex-col items-center text-center border-emerald-100">
-                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                            <i data-lucide="navigation" class="w-10 h-10"></i>
-                        </div>
-                        <h3 class="text-xl font-[900] mb-2 text-slate-800">قائمة الأماكن</h3>
-                        <p class="text-sm text-slate-400 mb-8 px-4">تحديث أسماء الأرفف والمواقع (Shelf ID) المتاحة في المخزن</p>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-dashed border-slate-200 text-center hover:border-green-400 transition">
+                        <i data-lucide="navigation" class="w-10 h-10 text-green-500 mx-auto mb-4"></i>
+                        <h4 class="font-bold mb-4">رفع الأماكن</h4>
                         <input type="file" id="upload-locations" class="hidden" accept=".xlsx, .xls">
-                        <button onclick="document.getElementById('upload-locations').click()" class="btn-tree w-full text-white py-5 rounded-2xl font-bold text-lg shadow-xl">اختر ملف المواقع</button>
+                        <button onclick="document.getElementById('upload-locations').click()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700">اختيار ملف</button>
                     </div>
 
-                    <!-- 3. Current Inventory -->
-                    <div class="upload-card bg-white p-8 rounded-[3rem] shadow-sm flex flex-col items-center text-center border-purple-100">
-                        <div class="w-20 h-20 bg-purple-100 text-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
-                            <i data-lucide="layers" class="w-10 h-10"></i>
-                        </div>
-                        <h3 class="text-xl font-[900] mb-2 text-slate-800">رصيد المخزن الفعلي</h3>
-                        <p class="text-sm text-slate-400 mb-8 px-4">توزيع كميات الباركود على الأرفف (الحالة الفعلية الحالية)</p>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-2 border-dashed border-slate-200 text-center hover:border-purple-400 transition">
+                        <i data-lucide="layers" class="w-10 h-10 text-purple-500 mx-auto mb-4"></i>
+                        <h4 class="font-bold mb-4">رصيد المخزن</h4>
                         <input type="file" id="upload-inventory" class="hidden" accept=".xlsx, .xls">
-                        <button onclick="document.getElementById('upload-inventory').click()" class="btn-tree w-full text-white py-5 rounded-2xl font-bold text-lg shadow-xl">اختر ملف الرصيد</button>
+                        <button onclick="document.getElementById('upload-inventory').click()" class="w-full bg-purple-600 text-white py-3 rounded-xl font-bold hover:bg-purple-700">اختيار ملف</button>
                     </div>
                 </div>
 
-                <!-- شريط الحالة (تحديث ذكي) -->
-                <div id="status-box" class="mt-16 hidden max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-2xl border border-emerald-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></div>
-                            <span id="status-text" class="font-bold text-slate-800">جاري تنظيف ورفع البيانات...</span>
-                        </div>
-                        <span id="status-percent" class="text-emerald-600 font-[900] text-xl">0%</span>
+                <!-- Status Progress -->
+                <div id="status-box" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="loader w-6 h-6 border-4 border-slate-200 rounded-full"></div>
+                        <span id="status-text" class="font-bold text-slate-700">جاري المعالجة والرفع...</span>
                     </div>
-                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-1">
-                        <div id="status-bar" class="bg-gradient-to-l from-emerald-400 to-emerald-600 h-full w-0 rounded-full transition-all duration-300"></div>
-                    </div>
+                    <span id="status-percent" class="text-green-600 font-black">0%</span>
                 </div>
             </div>
 
-            <!-- Inventory Live Table -->
+            <!-- Inventory Section -->
             <div id="section-inventory" class="section hidden">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <h2 class="text-3xl font-black text-slate-900">الجرد المباشر (Cloud) 🔍</h2>
-                    <div class="relative w-full md:w-96">
-                        <i data-lucide="search" class="absolute right-4 top-4 text-slate-300"></i>
-                        <input type="text" id="searchInput" placeholder="بحث بالباركود أو الموقع..." class="w-full pr-12 pl-6 py-4 bg-white rounded-2xl border-0 shadow-sm focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-bold">
-                    </div>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-xl font-bold text-slate-800">الجرد الحي للمخزن</h3>
+                    <input type="text" id="searchInput" placeholder="بحث بالباركود..." class="w-full md:w-64 px-4 py-2 border rounded-xl text-sm outline-none focus:ring-2 focus:ring-green-500">
                 </div>
-
-                <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-50 overflow-hidden">
-                    <table class="w-full text-right border-collapse">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <table class="w-full text-right">
                         <thead>
-                            <tr class="bg-slate-50/50 text-slate-400 font-bold text-sm uppercase">
-                                <th class="p-6">الباركود (نظيف)</th>
-                                <th class="p-6">الموقع (Shelf)</th>
-                                <th class="p-6">الكمية الحالية</th>
-                                <th class="p-6">آخر تحديث</th>
+                            <tr class="bg-slate-50 text-slate-500 text-sm">
+                                <th class="p-4">الباركود</th>
+                                <th class="p-4">الموقع</th>
+                                <th class="p-4">الكمية</th>
+                                <th class="p-4">الحالة</th>
                             </tr>
                         </thead>
-                        <tbody id="inventory-body" class="divide-y divide-slate-50 font-medium">
+                        <tbody id="inventory-table-body" class="text-slate-600">
                             <!-- Data -->
                         </tbody>
                     </table>
                 </div>
             </div>
-
         </main>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-12 right-12 translate-y-32 opacity-0 bg-slate-900 text-white px-10 py-5 rounded-[2rem] shadow-2xl transition-all duration-500 z-[100] flex items-center gap-4">
-        <div id="toast-icon-box" class="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500">
-            <i data-lucide="check" class="w-5 h-5"></i>
-        </div>
-        <span id="toast-msg" class="font-bold">تمت العملية بنجاح!</span>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-32 opacity-0 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl transition-all duration-500 z-[100] font-bold">
+        تمت العملية بنجاح! ✅
     </div>
 
-    <!-- Firebase Core -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <script>
-        // --- 1. CONFIG ---
+        // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyC46UwQuB1LBisOsXhcl9xiN3BU7lc6T5E",
             authDomain: "tree-warehouse.firebaseapp.com",
@@ -197,60 +170,50 @@
         const db = firebase.firestore();
         lucide.createIcons();
 
-        // --- 2. BARCODE CLEANER (المنظف الذكي) ---
+        // --- 2. BARCODE CLEANER (الحل للمطب) ---
         function cleanBarcode(raw) {
             if (!raw) return "";
             let s = raw.toString().trim();
-            
-            // حذف علامة ' في البداية
             if (s.startsWith("'")) s = s.substring(1);
-            
-            // حذف الـ .0 في النهاية
             if (s.endsWith(".0")) s = s.substring(0, s.length - 2);
-            
-            // حذف أي مسافات مخفية
-            s = s.replace(/\s+/g, '');
-            
-            return s;
+            return s.replace(/\s+/g, '');
         }
 
-        // --- 3. UI LOGIC ---
+        // --- 3. UI NAVIGATION ---
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('sidebar-active', 'text-white'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-slate-400'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-slate-300'));
 
             document.getElementById('section-' + id).classList.remove('hidden');
             document.getElementById('nav-' + id).classList.add('sidebar-active', 'text-white');
-            document.getElementById('nav-' + id).classList.remove('text-slate-400');
+            document.getElementById('nav-' + id).classList.remove('text-slate-300');
             lucide.createIcons();
         }
 
-        // --- 4. EXCEL UPLOADER ---
-        async function handleExcel(file, type) {
+        // --- 4. EXCEL PROCESSING ---
+        async function handleUpload(file, type) {
             const statusBox = document.getElementById('status-box');
             const statusText = document.getElementById('status-text');
-            const statusBar = document.getElementById('status-bar');
             const statusPercent = document.getElementById('status-percent');
 
             statusBox.classList.remove('hidden');
-            statusText.innerText = "جاري قراءة الملف ومعالجة الباركودات...";
-            
+            statusText.innerText = "جاري قراءة وتنظيف الملف...";
+
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
-                // استخدام {raw: false} لضمان قراءة الأرقام كنصوص
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {raw: false});
                 
                 let batch = db.batch();
-                let counter = 0;
+                let count = 0;
 
                 for (let i = 0; i < json.length; i++) {
                     const row = json[i];
                     const barcode = cleanBarcode(row.barcode || row['باركود'] || row['Barcode']);
                     const locId = (row.locationId || row['المكان'] || row['Location'])?.toString().trim();
-                    
+
                     if (type === 'catalog' && barcode) {
                         const ref = db.collection("ProductsCatalog").document(barcode);
                         batch.set(ref, {
@@ -274,60 +237,53 @@
                         }, {merge: true});
                     }
 
-                    counter++;
-                    const progress = Math.round((i / json.length) * 100);
-                    statusBar.style.width = progress + "%";
-                    statusPercent.innerText = progress + "%";
-
-                    if (counter % 450 === 0) {
+                    count++;
+                    statusPercent.innerText = Math.round((i / json.length) * 100) + "%";
+                    if (count % 450 === 0) {
                         await batch.commit();
                         batch = db.batch();
                     }
                 }
-
                 await batch.commit();
-                statusText.innerText = "تم الرفع بنجاح! البيانات الآن سليمة ونظيفة ✅";
-                showToast("تم تحديث قاعدة البيانات بنجاح", "success");
-                setTimeout(() => statusBox.classList.add('hidden'), 4000);
+                statusBox.classList.add('hidden');
+                showToast("تم الرفع بنجاح! ✅");
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Listeners
-        document.getElementById('upload-catalog').addEventListener('change', (e) => handleExcel(e.target.files[0], 'catalog'));
-        document.getElementById('upload-locations').addEventListener('change', (e) => handleExcel(e.target.files[0], 'locations'));
-        document.getElementById('upload-inventory').addEventListener('change', (e) => handleExcel(e.target.files[0], 'inventory'));
+        // --- Listeners ---
+        document.getElementById('upload-catalog').addEventListener('change', (e) => handleUpload(e.target.files[0], 'catalog'));
+        document.getElementById('upload-locations').addEventListener('change', (e) => handleUpload(e.target.files[0], 'locations'));
+        document.getElementById('upload-inventory').addEventListener('change', (e) => handleUpload(e.target.files[0], 'inventory'));
 
-        // --- 5. LIVE DATA ---
+        // --- 5. DATA SYNC ---
         db.collection("warehouse_inventory").onSnapshot(snap => {
-            const tbody = document.getElementById('inventory-body');
+            const tbody = document.getElementById('inventory-table-body');
             let total = 0, low = 0, locs = new Set();
             tbody.innerHTML = "";
-            
             snap.forEach(doc => {
                 const item = doc.data();
                 total += (item.quantity || 0);
-                if(item.quantity < 5) low++;
-                if(item.locationId) locs.add(item.locationId);
+                if (item.quantity < 5) low++;
+                if (item.locationId) locs.add(item.locationId);
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="p-6 font-bold text-slate-800 tracking-wider">${item.barcode}</td>
-                        <td class="p-6"><span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-black uppercase">${item.locationId}</span></td>
-                        <td class="p-6 font-black text-lg">${item.quantity}</td>
-                        <td class="p-6 text-slate-400 text-xs">${item.lastUpdated?.toDate().toLocaleString('ar-EG') || '---'}</td>
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 font-bold text-sm text-slate-700">${item.barcode}</td>
+                        <td class="p-4 text-xs font-bold text-emerald-600 uppercase">${item.locationId}</td>
+                        <td class="p-4 font-black text-lg">${item.quantity}</td>
+                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[10px] font-bold ${item.quantity < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">${item.quantity < 5 ? 'نقص' : 'متوفر'}</span></td>
                     </tr>
                 `;
             });
-            document.getElementById('stat-total').innerText = total.toLocaleString();
+            document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-low').innerText = low;
             document.getElementById('stat-locs').innerText = locs.size;
         });
 
-        // --- 6. UTILS ---
-        function showToast(msg, type) {
+        function showToast(msg) {
             const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
+            t.innerText = msg;
             t.classList.remove('translate-y-32', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 4000);
         }
