@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم TREE - الإدارة المركزية</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة قراءة الإكسيل -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        /* أنيميشن التحميل */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #22c55e; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <!-- Header -->
+    <div class="max-w-5xl mx-auto mb-8 text-center bg-white p-6 rounded-2xl shadow-sm border-t-4 border-green-500">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-2">🌲 TREE Dashboard</h1>
+        <p class="text-gray-500 font-semibold">بوابة الإدارة المركزية - مزامنة البيانات (Cloud WMS)</p>
+    </div>
+
+    <!-- شبكة رفع الملفات -->
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        
+        <!-- الكارت الأول: رصيد المخزن -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 text-xl">📦</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">1. رصيد المخزن</h2>
+            <p class="text-sm text-gray-500 mb-4">ملف (Barcode, Name, Quantity)</p>
+            <input type="file" id="inventoryFile" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer mb-4">
+            <button onclick="handleUpload('inventory')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center items-center gap-2 transition-colors">
+                <span id="text-inventory">رفع الرصيد</span>
+                <div id="loader-inventory" class="loader"></div>
+            </button>
+        </div>
+
+        <!-- الكارت الثاني: صور شوبيفاي -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+            <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4 text-xl">📸</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">2. صور المنتجات</h2>
+            <p class="text-sm text-gray-500 mb-4">ملف شوبيفاي (Variant Barcode, Image Src)</p>
+            <input type="file" id="imagesFile" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer mb-4">
+            <button onclick="handleUpload('images')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center items-center gap-2 transition-colors">
+                <span id="text-images">تحديث الصور</span>
+                <div id="loader-images" class="loader"></div>
+            </button>
+        </div>
+
+        <!-- الكارت الثالث: أوردرات شوبيفاي -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-4 text-xl">🛒</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">3. أوردرات اليوم</h2>
+            <p class="text-sm text-gray-500 mb-4">ملف الأوردرات الخام لتظهر للموظفين</p>
+            <input type="file" id="ordersFile" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer mb-4">
+            <button onclick="handleUpload('orders')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex justify-center items-center gap-2 transition-colors">
+                <span id="text-orders">تصدير للمخزن</span>
+                <div id="loader-orders" class="loader"></div>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- شاشة المراقبة -->
+    <div class="max-w-5xl mx-auto bg-gray-900 rounded-2xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-white">🖥️ شاشة المراقبة المباشرة (Server Logs)</h3>
+            <button onclick="document.getElementById('consoleLog').innerHTML=''" class="text-xs text-gray-400 hover:text-white">مسح الشاشة</button>
+        </div>
+        <div id="consoleLog" class="bg-black text-green-400 font-mono text-sm p-4 rounded-xl h-64 overflow-y-auto border border-gray-700">
+            > جاري الاتصال بخوادم TREE...<br>
+            > النظام جاهز بانتظار رفع الملفات...<br>
+        </div>
+    </div>
+
+    <!-- كود فايربيز والمنطق البرمجي -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // مفاتيحك الخاصة
+        const firebaseConfig = {
+            apiKey: "AIzaSyC46UwQuB1LBisOsXhcl9xiN3BU7lc6T5E",
+            authDomain: "tree-warehouse.firebaseapp.com",
+            projectId: "tree-warehouse",
+            storageBucket: "tree-warehouse.firebasestorage.app",
+            messagingSenderId: "945224497267",
+            appId: "1:945224497267:web:467340f09be738d0175206"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // ربط دالة الرفع بنافذة الموقع (Global Scope)
+        window.handleUpload = handleUpload;
+
+        function logConsole(msg, type = 'info') {
+            const logDiv = document.getElementById('consoleLog');
+            const time = new Date().toLocaleTimeString();
+            let color = "text-green-400";
+            if(type === 'error') color = "text-red-500";
+            if(type === 'success') color = "text-yellow-300 font-bold";
+            
+            logDiv.innerHTML += `<span class="text-gray-500">[${time}]</span> <span class="${color}">> ${msg}</span><br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function handleUpload(type) {
+            const fileInput = document.getElementById(`${type}File`);
+            const file = fileInput.files[0];
+            const btnText = document.getElementById(`text-${type}`);
+            const loader = document.getElementById(`loader-${type}`);
+
+            if (!file) {
+                logConsole(`لم تقم باختيار ملف في قسم (${type})!`, 'error');
+                return;
+            }
+
+            // تشغيل الأنيميشن
+            btnText.style.display = 'none';
+            loader.style.display = 'block';
+            logConsole(`بدء تحليل ملف: ${file.name}...`);
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    // قراءة كـ JSON مع تجاهل المسافات في العناوين
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {defval: ""});
+                    
+                    logConsole(`تم العثور على ${json.length} صف. جاري الرفع السحابي (Batched)...`);
+
+                    let batch = writeBatch(db);
+                    let opCount = 0;
+                    let total = 0;
+
+                    for(let row of json) {
+                        // تنظيف أسماء الأعمدة من أي مسافات مخفية
+                        const cleanRow = {};
+                        for (let key in row) cleanRow[key.trim()] = row[key];
+
+                        let docRef;
+                        let uploadData = {};
+                        const collectionName = (type === 'orders') ? "shopify_orders" : "ProductsCatalog"; // أو "warehouse_inventory" حسب ما اعتمدتوه مع الـ Agent
+
+                        if(type === 'inventory') {
+                            const barcode = String(cleanRow['Barcode'] || cleanRow['barcode']).trim();
+                            if(!barcode || barcode === "undefined") continue;
+                            docRef = doc(db, collectionName, barcode);
+                            uploadData = {
+                                barcode: barcode,
+                                parentBarcode: barcode.includes('-') ? barcode.split('-')[0] : barcode,
+                                productName: cleanRow['Name'] || cleanRow['productName'] || "",
+                                systemQty: Number(cleanRow['Quantity'] || cleanRow['quantity'] || 0),
+                                lastUpdated: new Date()
+                            };
+                        } 
+                        else if(type === 'images') {
+                            const barcode = String(cleanRow['Variant Barcode']).trim();
+                            if(!barcode || barcode === "undefined") continue;
+                            docRef = doc(db, collectionName, barcode);
+                            uploadData = { imageUrl: cleanRow['Image Src'] };
+                        }
+                        else if(type === 'orders') {
+                             const orderId = String(cleanRow['Name']).trim();
+                             const sku = String(cleanRow['Lineitem sku']).trim();
+                             if(!orderId || !sku) continue;
+                             // للأوردرات، نستخدم رقم الأوردر والـ SKU كمعرف فريد
+                             docRef = doc(db, collectionName, `${orderId}_${sku}`);
+                             uploadData = {
+                                 orderId: orderId,
+                                 barcode: sku,
+                                 quantity: Number(cleanRow['Lineitem quantity']),
+                                 productName: cleanRow['Lineitem name'],
+                                 status: "PENDING",
+                                 importedAt: new Date()
+                             };
+                        }
+
+                        // التحديث بـ Merge عشان نحافظ على الداتا القديمة
+                        batch.set(docRef, uploadData, { merge: true });
+                        opCount++;
+                        total++;
+
+                        if(opCount === 490) {
+                            await batch.commit();
+                            batch = writeBatch(db);
+                            opCount = 0;
+                            logConsole(`تم مزامنة ${total} عنصر...`);
+                        }
+                    }
+
+                    if(opCount > 0) await batch.commit();
+
+                    logConsole(`✅ اكتملت العملية! تم مزامنة إجمالي ${total} سجل بنجاح.`, 'success');
+                    fileInput.value = ""; // تنظيف الحقل
+
+                } catch (error) {
+                    logConsole(`حدث خطأ تقني: ${error.message}`, 'error');
+                } finally {
+                    btnText.style.display = 'block';
+                    loader.style.display = 'none';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
