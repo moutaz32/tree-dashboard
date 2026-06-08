@@ -3,55 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree Dashboard | لوحة التحكم</title>
+    <title>Tree Warehouse | الإدارة المركزية</title>
+    
+    <!-- مكتبات مساعدة -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- إعدادات الألوان الخاصة بـ TREE -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        tree: {
+                            light: '#0a7a5c',
+                            DEFAULT: '#064e3b', // لون البراند الأخضر الغامق
+                            dark: '#032a20',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { background: #064e3b; background-image: radial-gradient(circle at 50% 50%, #065f46 0%, #064e3b 100%); font-family: 'Segoe UI', Tahoma, sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+        .upload-zone { transition: all 0.3s ease; }
+        .upload-zone:hover { border-color: #064e3b; background-color: #ecfdf5; }
+        /* تصميم شريط التمرير */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8">
+<body class="text-gray-800 antialiased">
 
-    <div class="max-w-4xl mx-auto">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-white mb-2">لوحة تحكم TREE الإدارية</h1>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- 1. الكتالوج -->
-            <div class="glass p-6 rounded-2xl text-white">
-                <h2 class="font-bold mb-4">الكتالوج</h2>
-                <input type="file" id="catFile" class="mb-4 w-full text-xs">
-                <button onclick="processUpload('cat')" class="w-full bg-green-600 py-2 rounded-lg font-bold">رفع الكتالوج</button>
-            </div>
-
-            <!-- 2. الصور -->
-            <div class="glass p-6 rounded-2xl text-white">
-                <h2 class="font-bold mb-4">صور المنتجات</h2>
-                <input type="file" id="imgFile" class="mb-4 w-full text-xs">
-                <button onclick="processUpload('img')" class="w-full bg-blue-600 py-2 rounded-lg font-bold">رفع الصور</button>
-            </div>
-
-            <!-- 3. الأوردرات -->
-            <div class="glass p-6 rounded-2xl text-white">
-                <h2 class="font-bold mb-4">أوردرات شوبيفاي</h2>
-                <input type="file" id="ordFile" class="mb-4 w-full text-xs">
-                <button onclick="processUpload('ord')" class="w-full bg-indigo-600 py-2 rounded-lg font-bold">رفع الأوردرات</button>
+    <!-- شريط الملاحة (Navbar) -->
+    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <img src="tree_logo.png.jpg" alt="TREE Logo" class="h-10 w-auto object-contain">
+                    <span class="font-bold text-xl text-tree tracking-tight">نظام الإدارة المركزي</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        متصل بقاعدة البيانات
+                    </span>
+                </div>
             </div>
         </div>
+    </nav>
 
-        <div class="mt-8">
-            <div id="statusLog" class="bg-black/30 font-mono text-sm p-4 rounded-xl h-48 overflow-y-auto text-green-300 border border-white/5">
-                > في انتظار الأوامر...
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">تحديث البيانات</h1>
+            <p class="text-gray-500 text-sm mt-1">قم برفع ملفات الإكسيل لتحديث قاعدة البيانات اللحظية (Firestore).</p>
+        </div>
+
+        <!-- شبكة الكروت الثلاثة -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
+            <!-- كارت 1: الكتالوج الأساسي -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">تحديث الرصيد</h2>
+                        <p class="text-xs text-gray-500">الباركود، الاسم، الكمية</p>
+                    </div>
+                </div>
+                <label class="upload-zone flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 flex-grow mb-4 relative">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="mb-1 text-sm text-gray-500 font-semibold" id="catFileName">اضغط لاختيار الملف</p>
+                        <p class="text-xs text-gray-400">Excel / CSV</p>
+                    </div>
+                    <input id="catFile" type="file" class="hidden" accept=".xlsx, .xls, .csv" onchange="updateFileName('cat')"/>
+                </label>
+                <button onclick="processUpload('cat')" class="w-full bg-tree text-white font-bold py-2.5 rounded-lg hover:bg-tree-light transition-colors flex justify-center items-center gap-2">
+                    رفع الكتالوج
+                </button>
+            </div>
+
+            <!-- كارت 2: ربط الصور -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">ربط الصور</h2>
+                        <p class="text-xs text-gray-500">الباركود، رابط الصورة</p>
+                    </div>
+                </div>
+                <label class="upload-zone flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 flex-grow mb-4 relative">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="mb-1 text-sm text-gray-500 font-semibold" id="imgFileName">اضغط لاختيار الملف</p>
+                        <p class="text-xs text-gray-400">Excel / CSV</p>
+                    </div>
+                    <input id="imgFile" type="file" class="hidden" accept=".xlsx, .xls, .csv" onchange="updateFileName('img')"/>
+                </label>
+                <button onclick="processUpload('img')" class="w-full bg-gray-800 text-white font-bold py-2.5 rounded-lg hover:bg-black transition-colors flex justify-center items-center gap-2">
+                    تحديث الصور
+                </button>
+            </div>
+
+            <!-- كارت 3: الأوردرات -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-3 bg-orange-50 text-orange-600 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">أوردرات شوبيفاي</h2>
+                        <p class="text-xs text-gray-500">رقم الطلب، الباركود، الكمية</p>
+                    </div>
+                </div>
+                <label class="upload-zone flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 flex-grow mb-4 relative">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="mb-1 text-sm text-gray-500 font-semibold" id="ordFileName">اضغط لاختيار الملف</p>
+                        <p class="text-xs text-gray-400">Excel / CSV</p>
+                    </div>
+                    <input id="ordFile" type="file" class="hidden" accept=".xlsx, .xls, .csv" onchange="updateFileName('ord')"/>
+                </label>
+                <button onclick="processUpload('ord')" class="w-full bg-white border-2 border-tree text-tree font-bold py-2.5 rounded-lg hover:bg-tree-50 transition-colors flex justify-center items-center gap-2">
+                    رفع الأوردرات
+                </button>
+            </div>
+
+        </div>
+
+        <!-- شاشة السجل (Console) -->
+        <div class="bg-gray-900 rounded-xl shadow-lg overflow-hidden flex flex-col h-64">
+            <div class="bg-gray-800 px-4 py-2 flex items-center justify-between border-b border-gray-700">
+                <span class="text-gray-300 text-sm font-semibold flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    سجل العمليات (System Logs)
+                </span>
+                <button onclick="document.getElementById('statusLog').innerHTML=''" class="text-gray-400 hover:text-white text-xs">مسح السجل</button>
+            </div>
+            <div id="statusLog" class="p-4 overflow-y-auto text-green-400 font-mono text-sm leading-relaxed flex-grow">
+                [النظام] > مرحبا بك في لوحة تحكم TREE.<br>
+                [النظام] > جاهز لاستقبال الملفات...<br>
             </div>
         </div>
-    </div>
 
+    </main>
+
+    <!-- أكواد جافاسكريبت و فايربيز -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, doc, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+        // إعدادات فايربيز الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyC46UwQuB1LBisOsXhcl9xiN3BU7lc6T5E",
             authDomain: "tree-warehouse.firebaseapp.com",
@@ -64,48 +177,130 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // دالة لتحديث اسم الملف في الواجهة
+        window.updateFileName = (type) => {
+            const fileInput = document.getElementById(type + 'File');
+            const fileNameDisplay = document.getElementById(type + 'FileName');
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.textContent = fileInput.files[0].name;
+                fileNameDisplay.classList.add('text-tree');
+            }
+        };
+
+        // دالة كتابة السجل
+        function logMsg(msg, isError = false) {
+            const time = new Date().toLocaleTimeString('ar-EG');
+            const logBox = document.getElementById('statusLog');
+            const color = isError ? 'text-red-400' : 'text-green-400';
+            logBox.innerHTML += `<span class="text-gray-500">[${time}]</span> <span class="${color}">> ${msg}</span><br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // الدالة الرئيسية للرفع
         window.processUpload = async (type) => {
             const input = document.getElementById(type + 'File');
-            if(!input.files[0]) return alert("اختر ملفاً أولاً");
+            if(!input.files[0]) {
+                Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'يرجى اختيار ملف الإكسيل أولاً!', confirmButtonColor: '#064e3b' });
+                return;
+            }
             
             const file = input.files[0];
+            
+            // إظهار اللودينج
+            Swal.fire({
+                title: 'جاري رفع ومعالجة البيانات...',
+                html: 'الرجاء عدم إغلاق هذه الصفحة.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            logMsg(`بدء معالجة ملف: ${file.name}`);
+
             const reader = new FileReader();
             
             reader.onload = async (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-                
-                let batch = writeBatch(db);
-                let count = 0;
-
-                for(let i = 1; i < json.length; i++) {
-                    const row = json[i];
-                    if(!row[0]) continue;
-
-                    if(type === 'cat') {
-                        // رفع الكتالوج
-                        batch.set(doc(db, "ProductsCatalog", String(row[0])), {
-                            barcode: String(row[0]), productName: row[1], quantity: Number(row[2]) || 0 
-                        }, {merge: true});
-                    } else if(type === 'img') {
-                        // رفع الصور
-                        batch.set(doc(db, "ProductsCatalog", String(row[0])), {
-                            imageUrl: row[1]
-                        }, {merge: true});
-                    } else if(type === 'ord') {
-                        // رفع الأوردرات
-                        await setDoc(doc(db, "shopify_orders", String(row[0])), {
-                            orderId: row[0], sku: row[1], qty: row[2], productName: row[3]
-                        });
-                    }
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
                     
-                    count++;
-                    if(count === 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
+                    let batch = writeBatch(db);
+                    let count = 0;
+                    let totalItems = 0;
+
+                    for(let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if(!row[0]) continue; // تخطي الصفوف الفارغة
+
+                        const safeBarcode = String(row[0]).trim();
+
+                        if(type === 'cat') {
+                            const name = row[1] ? String(row[1]) : "بدون اسم";
+                            const qty = Number(row[2]) || 0;
+                            batch.set(doc(db, "ProductsCatalog", safeBarcode), {
+                                barcode: safeBarcode, productName: name, quantity: qty, lastUpdated: new Date()
+                            }, {merge: true});
+                        } 
+                        else if(type === 'img') {
+                            const imgUrl = row[1] ? String(row[1]) : "";
+                            if(imgUrl) {
+                                batch.set(doc(db, "ProductsCatalog", safeBarcode), {
+                                    imageUrl: imgUrl
+                                }, {merge: true});
+                            }
+                        } 
+                        else if(type === 'ord') {
+                            const orderId = String(row[0]);
+                            const sku = String(row[1]);
+                            const qty = Number(row[2]) || 1;
+                            const name = row[3] ? String(row[3]) : "";
+                            // الأوردرات تسجل كمستندات منفصلة (يمكن تعديل المسار حسب هيكلة التطبيق)
+                            await setDoc(doc(db, "shopify_orders", `${orderId}_${sku}`), {
+                                orderId: orderId, barcode: sku, requiredQuantity: qty, productName: name, status: "pending", timestamp: new Date()
+                            });
+                        }
+                        
+                        count++;
+                        totalItems++;
+
+                        // فايربيز يقبل 500 عملية في الباتش الواحد
+                        if(count === 400 && type !== 'ord') { 
+                            await batch.commit(); 
+                            batch = writeBatch(db); 
+                            count = 0; 
+                            logMsg(`تم رفع دفعة جديدة (${totalItems} عنصر حتى الآن)...`);
+                        }
+                    }
+
+                    // رفع الباقي
+                    if(count > 0 && type !== 'ord') await batch.commit();
+
+                    logMsg(`تمت العملية بنجاح! الإجمالي: ${totalItems} عنصر.`);
+                    
+                    // إغلاق اللودينج وإظهار رسالة النجاح
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم التحديث بنجاح!',
+                        text: `تمت معالجة ${totalItems} عنصر وحفظهم في قاعدة البيانات.`,
+                        confirmButtonColor: '#064e3b'
+                    });
+
+                    // تصفير حقل الملف
+                    input.value = '';
+                    document.getElementById(type + 'FileName').textContent = 'اضغط لاختيار الملف';
+                    document.getElementById(type + 'FileName').classList.remove('text-tree');
+
+                } catch (error) {
+                    logMsg(`حدث خطأ: ${error.message}`, true);
+                    Swal.fire({ icon: 'error', title: 'خطأ', text: error.message, confirmButtonColor: '#064e3b' });
                 }
-                if(count > 0) await batch.commit();
-                document.getElementById('statusLog').innerHTML += `> ✅ تم رفع ${type} بنجاح!<br>`;
             };
+
+            reader.onerror = () => {
+                logMsg("فشل في قراءة الملف.", true);
+                Swal.fire({ icon: 'error', title: 'خطأ', text: 'حدث خطأ أثناء قراءة ملف الإكسيل.', confirmButtonColor: '#064e3b' });
+            };
+
             reader.readAsArrayBuffer(file);
         };
     </script>
