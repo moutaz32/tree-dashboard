@@ -3,56 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TREE Admin | إدارة المخزون</title>
+    <title>Tree Dashboard | لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #2e3d36; }
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background: #064e3b; background-image: radial-gradient(circle at 50% 50%, #065f46 0%, #064e3b 100%); font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-10 flex flex-col items-center">
+<body class="min-h-screen p-4 md:p-8">
 
-    <!-- اللوجو في الأعلى -->
-    <div class="mb-8">
-        <img src="https://raw.githubusercontent.com/moutaz32/tree-dashboard/main/tree_logo.png" alt="TREE Logo" class="w-32 h-32 object-contain">
-    </div>
-
-    <!-- الكارت الرئيسي -->
-    <div class="glass w-full max-w-2xl p-8 rounded-2xl shadow-2xl text-white">
-        <h1 class="text-3xl font-bold mb-8 text-center border-b border-white/20 pb-4">نظام TREE للإدارة</h1>
-
-        <!-- الأزرار -->
-        <div class="space-y-6">
-            <div class="glass p-4 rounded-xl">
-                <label class="block font-bold mb-2">استيراد كتالوج المنتجات</label>
-                <input type="file" id="catalogFile" class="w-full text-sm text-gray-300 file:bg-white/20 file:text-white file:border-0 file:py-2 file:px-4 file:rounded-lg cursor-pointer">
-            </div>
-
-            <div class="glass p-4 rounded-xl">
-                <label class="block font-bold mb-2">تحديث صور المنتجات (Shopify)</label>
-                <input type="file" id="imagesFile" class="w-full text-sm text-gray-300 file:bg-white/20 file:text-white file:border-0 file:py-2 file:px-4 file:rounded-lg cursor-pointer">
-            </div>
-
-            <button id="uploadBtn" class="w-full bg-white text-[#2e3d36] font-bold py-4 rounded-xl hover:bg-gray-200 transition-all">
-                مزامنة البيانات الآن
-            </button>
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">لوحة تحكم TREE الإدارية</h1>
         </div>
 
-        <!-- سجل العمليات -->
-        <div class="mt-8 bg-black/30 p-4 rounded-xl h-48 overflow-y-auto font-mono text-xs">
-            <div id="statusLog" class="text-green-300">
-                > نظام الإدارة جاهز...<br>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- 1. الكتالوج -->
+            <div class="glass p-6 rounded-2xl text-white">
+                <h2 class="font-bold mb-4">الكتالوج</h2>
+                <input type="file" id="catFile" class="mb-4 w-full text-xs">
+                <button onclick="processUpload('cat')" class="w-full bg-green-600 py-2 rounded-lg font-bold">رفع الكتالوج</button>
+            </div>
+
+            <!-- 2. الصور -->
+            <div class="glass p-6 rounded-2xl text-white">
+                <h2 class="font-bold mb-4">صور المنتجات</h2>
+                <input type="file" id="imgFile" class="mb-4 w-full text-xs">
+                <button onclick="processUpload('img')" class="w-full bg-blue-600 py-2 rounded-lg font-bold">رفع الصور</button>
+            </div>
+
+            <!-- 3. الأوردرات -->
+            <div class="glass p-6 rounded-2xl text-white">
+                <h2 class="font-bold mb-4">أوردرات شوبيفاي</h2>
+                <input type="file" id="ordFile" class="mb-4 w-full text-xs">
+                <button onclick="processUpload('ord')" class="w-full bg-indigo-600 py-2 rounded-lg font-bold">رفع الأوردرات</button>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <div id="statusLog" class="bg-black/30 font-mono text-sm p-4 rounded-xl h-48 overflow-y-auto text-green-300 border border-white/5">
+                > في انتظار الأوامر...
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // نفس إعدادات الفايربيز الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyC46UwQuB1LBisOsXhcl9xiN3BU7lc6T5E",
             authDomain: "tree-warehouse.firebaseapp.com",
@@ -64,27 +63,51 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const statusLog = document.getElementById('statusLog');
 
-        function log(msg) {
-            statusLog.innerHTML += `> ${msg}<br>`;
-            statusLog.scrollTop = statusLog.scrollHeight;
-        }
+        window.processUpload = async (type) => {
+            const input = document.getElementById(type + 'File');
+            if(!input.files[0]) return alert("اختر ملفاً أولاً");
+            
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                
+                let batch = writeBatch(db);
+                let count = 0;
 
-        document.getElementById('uploadBtn').addEventListener('click', async () => {
-            log("بدء المزامنة...");
-            // هنا تحط كود الـ Batch اللي الـ Agent كتبهولك قبل كده
-            // ليقوم برفع ملفات الـ Catalog و Images مع بعض.
-        });
+                for(let i = 1; i < json.length; i++) {
+                    const row = json[i];
+                    if(!row[0]) continue;
+
+                    if(type === 'cat') {
+                        // رفع الكتالوج
+                        batch.set(doc(db, "ProductsCatalog", String(row[0])), {
+                            barcode: String(row[0]), productName: row[1], quantity: Number(row[2]) || 0 
+                        }, {merge: true});
+                    } else if(type === 'img') {
+                        // رفع الصور
+                        batch.set(doc(db, "ProductsCatalog", String(row[0])), {
+                            imageUrl: row[1]
+                        }, {merge: true});
+                    } else if(type === 'ord') {
+                        // رفع الأوردرات
+                        await setDoc(doc(db, "shopify_orders", String(row[0])), {
+                            orderId: row[0], sku: row[1], qty: row[2], productName: row[3]
+                        });
+                    }
+                    
+                    count++;
+                    if(count === 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
+                }
+                if(count > 0) await batch.commit();
+                document.getElementById('statusLog').innerHTML += `> ✅ تم رفع ${type} بنجاح!<br>`;
+            };
+            reader.readAsArrayBuffer(file);
+        };
     </script>
 </body>
 </html>
-```
-
-### إزاي تخلي اللوجو يظهر صح؟
-في سطر الـ `img` في الكود، أنا حطيت رابط افتراضي:
-`https://raw.githubusercontent.com/moutaz32/tree-dashboard/main/tree_logo.png`
-*   بعد ما ترفع اللوجو بتاعك على الـ Repository على جيت هاب، اضغط عليه وخد رابط الصورة (الرابط المباشر اللي بينتهي بـ `.png`).
-*   عدل الرابط في الكود بالرابط بتاعك، وهتلاقي اللوجو ظهر في أعلى الصفحة.
-
-كده بقى معاك "واجهة" تنافس الشركات الكبيرة. لو حابب نربط أزرار الرفع بالأكواد اللي كتبناها قبل كده في ملف واحد، قولي وأنا أظبطهالك! 🚀👕👔
