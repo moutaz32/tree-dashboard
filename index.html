@@ -3,130 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TREE Warehouse | لوحة التحكم</title>
+    <title>إدارة TREE Warehouse | المركز الذكي</title>
+    <!-- CSS & Frameworks -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
+        .sidebar-active { background: #059669; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2); }
+        .upload-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 2px dashed #e2e8f0; }
+        .upload-card:hover { border-color: #10b981; background: #f0fdf4; transform: translateY(-8px); }
+        .btn-tree { background: #064e3b; transition: all 0.3s; }
+        .btn-tree:hover { background: #065f46; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body>
+<body class="text-slate-800 antialiased">
 
-    <div id="app" class="min-h-screen flex flex-col md:flex-row">
+    <div class="min-h-screen flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <aside class="w-full md:w-64 bg-slate-900 text-white p-6">
-            <div class="flex items-center gap-3 mb-10">
-                <div class="bg-green-500 p-2 rounded-lg">
-                    <i data-lucide="layout-dashboard" class="text-white"></i>
+        <aside class="w-full md:w-80 bg-[#020617] text-white p-8 flex flex-col shadow-2xl z-50">
+            <!-- الـ LOGO -->
+            <div class="flex flex-col items-center mb-12">
+                <div class="w-28 h-28 bg-white rounded-[2rem] p-3 shadow-2xl mb-5 flex items-center justify-center overflow-hidden border-4 border-emerald-500/20">
+                    <!-- ضع رابط اللوجو الخاص بك هنا -->
+                    <img src="logo.png" alt="TREE Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/490/490154.png'" class="w-full h-full object-contain">
                 </div>
-                <h1 class="text-xl font-bold">TREE Warehouse</h1>
+                <h1 class="text-3xl font-[900] tracking-tighter">TREE <span class="text-emerald-500">WAREHOUSE</span></h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] mt-2">Inventory Management OS</p>
             </div>
-            
-            <nav class="space-y-4">
-                <a href="#" class="flex items-center gap-3 p-3 bg-green-600 rounded-lg hover:bg-green-700 transition">
-                    <i data-lucide="home" class="w-5 h-5"></i> الرئيسية
-                </a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition">
-                    <i data-lucide="package" class="w-5 h-5"></i> المخزون
-                </a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition">
-                    <i data-lucide="shopping-cart" class="w-5 h-5"></i> الطلبيات
-                </a>
-                <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition">
-                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> التقارير
-                </a>
+
+            <nav class="space-y-4 flex-1">
+                <button onclick="showSection('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-4 p-4 rounded-2xl sidebar-active transition-all">
+                    <i data-lucide="layout-dashboard"></i> <span class="font-bold text-lg">الرئيسية</span>
+                </button>
+                <button onclick="showSection('uploads')" id="nav-uploads" class="nav-btn w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-800 transition-all text-slate-400 hover:text-white">
+                    <i data-lucide="file-up"></i> <span class="font-bold text-lg">رفع الملفات</span>
+                </button>
+                <button onclick="showSection('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-800 transition-all text-slate-400 hover:text-white">
+                    <i data-lucide="database"></i> <span class="font-bold text-lg">المخزن المباشر</span>
+                </button>
             </nav>
+
+            <div class="mt-auto bg-slate-900/50 p-5 rounded-3xl border border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
+                    <p class="text-xs text-slate-300 font-bold">متصل بـ Firebase ✅</p>
+                </div>
+            </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-            <!-- Header -->
-            <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800">مرحباً بك، مدير TREE 👋</h2>
-                    <p class="text-slate-500">هذه نظرة عامة على حالة المستودع اليوم</p>
-                </div>
-                <div class="flex gap-3">
-                    <span id="sync-status" class="flex items-center gap-2 px-4 py-2 bg-white border rounded-full text-sm font-medium text-slate-600 shadow-sm">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        متصل بالبيانات
-                    </span>
-                </div>
-            </header>
-
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="box"></i></div>
-                        <span class="text-xs font-bold text-blue-600">+12%</span>
-                    </div>
-                    <h3 class="text-slate-500 text-sm mb-1">إجمالي المنتجات</h3>
-                    <p id="total-products" class="text-2xl font-bold text-slate-800">جاري التحميل...</p>
+        <!-- Main Area -->
+        <main class="flex-1 p-6 md:p-12 overflow-y-auto custom-scroll">
+            
+            <!-- Dashboard Section -->
+            <div id="section-dashboard" class="section">
+                <div class="mb-12">
+                    <h2 class="text-4xl font-[900] text-slate-900">أهلاً بك في TREE 👋</h2>
+                    <p class="text-slate-500 mt-2 text-lg font-medium">نظرة سريعة على ما يحدث في مستودعك الآن</p>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="alert-triangle"></i></div>
-                        <span class="text-xs font-bold text-amber-600">هام</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest relative">إجمالي قطع المخزن</p>
+                        <h3 id="stat-total" class="text-5xl font-black mt-2 relative">0</h3>
                     </div>
-                    <h3 class="text-slate-500 text-sm mb-1">النواقص (أقل من 5)</h3>
-                    <p id="low-stock-count" class="text-2xl font-bold text-slate-800">0</p>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="p-3 bg-green-50 text-green-600 rounded-xl"><i data-lucide="check-circle"></i></div>
-                        <span class="text-xs font-bold text-green-600">مكتمل</span>
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest relative text-amber-600">النواقص الحرجة</p>
+                        <h3 id="stat-low" class="text-5xl font-black mt-2 text-amber-600 relative">0</h3>
                     </div>
-                    <h3 class="text-slate-500 text-sm mb-1">طلبات اليوم</h3>
-                    <p id="orders-today" class="text-2xl font-bold text-slate-800">0</p>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="p-3 bg-purple-50 text-purple-600 rounded-xl"><i data-lucide="users"></i></div>
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+                        <p class="text-slate-400 font-bold text-xs uppercase tracking-widest relative">عدد المواقع النشطة</p>
+                        <h3 id="stat-locs" class="text-5xl font-black mt-2 relative">0</h3>
                     </div>
-                    <h3 class="text-slate-500 text-sm mb-1">الموظفون النشطون</h3>
-                    <p class="text-2xl font-bold text-slate-800">3</p>
                 </div>
             </div>
 
-            <!-- Inventory Table Section -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-4">
-                    <h3 class="text-lg font-bold text-slate-800 text-right">المخزون الحالي (Live)</h3>
-                    <div class="relative">
-                        <i data-lucide="search" class="absolute right-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                        <input type="text" placeholder="بحث بالباركود أو الاسم..." class="pr-10 pl-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-full md:w-64">
+            <!-- Uploads Section -->
+            <div id="section-uploads" class="section hidden">
+                <div class="mb-10 text-right">
+                    <h2 class="text-3xl font-[900] text-slate-900">مركز رفع وتحديث البيانات 📂</h2>
+                    <p class="text-slate-500 mt-2">النظام يعالج مشاكل الإكسيل تلقائياً (علامات ' والشرطات والكسور)</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- 1. Catalog -->
+                    <div class="upload-card bg-white p-8 rounded-[3rem] shadow-sm flex flex-col items-center text-center">
+                        <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+                            <i data-lucide="shopping-bag" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-[900] mb-2 text-slate-800">كتالوج المنتجات</h3>
+                        <p class="text-sm text-slate-400 mb-8 px-4">رفع الأسماء والباركودات الرسمية والكميات الافتراضية</p>
+                        <input type="file" id="upload-catalog" class="hidden" accept=".xlsx, .xls">
+                        <button onclick="document.getElementById('upload-catalog').click()" class="btn-tree w-full text-white py-5 rounded-2xl font-bold text-lg shadow-xl">اختر ملف الكتالوج</button>
+                    </div>
+
+                    <!-- 2. Locations -->
+                    <div class="upload-card bg-white p-8 rounded-[3rem] shadow-sm flex flex-col items-center text-center border-emerald-100">
+                        <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+                            <i data-lucide="navigation" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-[900] mb-2 text-slate-800">قائمة الأماكن</h3>
+                        <p class="text-sm text-slate-400 mb-8 px-4">تحديث أسماء الأرفف والمواقع (Shelf ID) المتاحة في المخزن</p>
+                        <input type="file" id="upload-locations" class="hidden" accept=".xlsx, .xls">
+                        <button onclick="document.getElementById('upload-locations').click()" class="btn-tree w-full text-white py-5 rounded-2xl font-bold text-lg shadow-xl">اختر ملف المواقع</button>
+                    </div>
+
+                    <!-- 3. Current Inventory -->
+                    <div class="upload-card bg-white p-8 rounded-[3rem] shadow-sm flex flex-col items-center text-center border-purple-100">
+                        <div class="w-20 h-20 bg-purple-100 text-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+                            <i data-lucide="layers" class="w-10 h-10"></i>
+                        </div>
+                        <h3 class="text-xl font-[900] mb-2 text-slate-800">رصيد المخزن الفعلي</h3>
+                        <p class="text-sm text-slate-400 mb-8 px-4">توزيع كميات الباركود على الأرفف (الحالة الفعلية الحالية)</p>
+                        <input type="file" id="upload-inventory" class="hidden" accept=".xlsx, .xls">
+                        <button onclick="document.getElementById('upload-inventory').click()" class="btn-tree w-full text-white py-5 rounded-2xl font-bold text-lg shadow-xl">اختر ملف الرصيد</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
+
+                <!-- شريط الحالة (تحديث ذكي) -->
+                <div id="status-box" class="mt-16 hidden max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-2xl border border-emerald-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></div>
+                            <span id="status-text" class="font-bold text-slate-800">جاري تنظيف ورفع البيانات...</span>
+                        </div>
+                        <span id="status-percent" class="text-emerald-600 font-[900] text-xl">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-1">
+                        <div id="status-bar" class="bg-gradient-to-l from-emerald-400 to-emerald-600 h-full w-0 rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Live Table -->
+            <div id="section-inventory" class="section hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                    <h2 class="text-3xl font-black text-slate-900">الجرد المباشر (Cloud) 🔍</h2>
+                    <div class="relative w-full md:w-96">
+                        <i data-lucide="search" class="absolute right-4 top-4 text-slate-300"></i>
+                        <input type="text" id="searchInput" placeholder="بحث بالباركود أو الموقع..." class="w-full pr-12 pl-6 py-4 bg-white rounded-2xl border-0 shadow-sm focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-bold">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-50 overflow-hidden">
                     <table class="w-full text-right border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-sm">
-                                <th class="p-4">المنتج</th>
-                                <th class="p-4">الباركود</th>
-                                <th class="p-4">الموقع (Shelf)</th>
-                                <th class="p-4">الكمية</th>
-                                <th class="p-4">الحالة</th>
+                            <tr class="bg-slate-50/50 text-slate-400 font-bold text-sm uppercase">
+                                <th class="p-6">الباركود (نظيف)</th>
+                                <th class="p-6">الموقع (Shelf)</th>
+                                <th class="p-6">الكمية الحالية</th>
+                                <th class="p-6">آخر تحديث</th>
                             </tr>
                         </thead>
-                        <tbody id="inventory-body" class="text-slate-600">
-                            <!-- Data will be injected here -->
+                        <tbody id="inventory-body" class="divide-y divide-slate-50 font-medium">
+                            <!-- Data -->
                         </tbody>
                     </table>
                 </div>
             </div>
+
         </main>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-12 right-12 translate-y-32 opacity-0 bg-slate-900 text-white px-10 py-5 rounded-[2rem] shadow-2xl transition-all duration-500 z-[100] flex items-center gap-4">
+        <div id="toast-icon-box" class="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500">
+            <i data-lucide="check" class="w-5 h-5"></i>
+        </div>
+        <span id="toast-msg" class="font-bold">تمت العملية بنجاح!</span>
+    </div>
+
+    <!-- Firebase Core -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <script>
-        // --- 1. CONFIGURATION ---
+        // --- 1. CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyC46UwQuB1LBisOsXhcl9xiN3BU7lc6T5E",
             authDomain: "tree-warehouse.firebaseapp.com",
@@ -135,57 +193,146 @@
             messagingSenderId: "945224497267",
             appId: "1:945224497267:web:467340f09be738d0175206"
         };
-
-        // --- 2. INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         lucide.createIcons();
 
-        const inventoryBody = document.getElementById('inventory-body');
-        const totalProductsEl = document.getElementById('total-products');
-        const lowStockEl = document.getElementById('low-stock-count');
-
-        // --- 3. REAL-TIME DATA LISTENER ---
-        function listenToInventory() {
-            db.collection("warehouse_inventory").orderBy("lastUpdated", "desc").limit(20)
-                .onSnapshot((snapshot) => {
-                    inventoryBody.innerHTML = "";
-                    let totalItems = 0;
-                    let lowStockCount = 0;
-
-                    snapshot.forEach((doc) => {
-                        const item = doc.data();
-                        totalItems += 1;
-                        if (item.quantity < 5) lowStockCount += 1;
-
-                        const row = `
-                            <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                                <td class="p-4 flex items-center gap-3">
-                                    <img src="${item.imageUrl || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-lg object-cover bg-slate-100">
-                                    <span class="font-medium">${item.productName || 'غير معروف'}</span>
-                                </td>
-                                <td class="p-4 text-sm font-mono text-slate-400">${item.barcode}</td>
-                                <td class="p-4"><span class="bg-slate-100 px-2 py-1 rounded text-xs">${item.locationId}</span></td>
-                                <td class="p-4 font-bold">${item.quantity}</td>
-                                <td class="p-4">
-                                    <span class="px-3 py-1 rounded-full text-xs font-bold ${item.quantity < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                                        ${item.quantity < 5 ? 'نقص حاد' : 'متوفر'}
-                                    </span>
-                                </td>
-                            </tr>
-                        `;
-                        inventoryBody.innerHTML += row;
-                    });
-
-                    // Update Stats
-                    totalProductsEl.innerText = totalItems;
-                    lowStockEl.innerText = lowStockCount;
-                });
+        // --- 2. BARCODE CLEANER (المنظف الذكي) ---
+        function cleanBarcode(raw) {
+            if (!raw) return "";
+            let s = raw.toString().trim();
+            
+            // حذف علامة ' في البداية
+            if (s.startsWith("'")) s = s.substring(1);
+            
+            // حذف الـ .0 في النهاية
+            if (s.endsWith(".0")) s = s.substring(0, s.length - 2);
+            
+            // حذف أي مسافات مخفية
+            s = s.replace(/\s+/g, '');
+            
+            return s;
         }
 
-        // Start listening
-        listenToInventory();
+        // --- 3. UI LOGIC ---
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('sidebar-active', 'text-white'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-slate-400'));
 
+            document.getElementById('section-' + id).classList.remove('hidden');
+            document.getElementById('nav-' + id).classList.add('sidebar-active', 'text-white');
+            document.getElementById('nav-' + id).classList.remove('text-slate-400');
+            lucide.createIcons();
+        }
+
+        // --- 4. EXCEL UPLOADER ---
+        async function handleExcel(file, type) {
+            const statusBox = document.getElementById('status-box');
+            const statusText = document.getElementById('status-text');
+            const statusBar = document.getElementById('status-bar');
+            const statusPercent = document.getElementById('status-percent');
+
+            statusBox.classList.remove('hidden');
+            statusText.innerText = "جاري قراءة الملف ومعالجة الباركودات...";
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                // استخدام {raw: false} لضمان قراءة الأرقام كنصوص
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {raw: false});
+                
+                let batch = db.batch();
+                let counter = 0;
+
+                for (let i = 0; i < json.length; i++) {
+                    const row = json[i];
+                    const barcode = cleanBarcode(row.barcode || row['باركود'] || row['Barcode']);
+                    const locId = (row.locationId || row['المكان'] || row['Location'])?.toString().trim();
+                    
+                    if (type === 'catalog' && barcode) {
+                        const ref = db.collection("ProductsCatalog").document(barcode);
+                        batch.set(ref, {
+                            barcode,
+                            productName: (row.productName || row['الاسم'] || "Unknown").toString().trim(),
+                            systemQty: parseInt(row.systemQty || row['الكمية']) || 0,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        }, {merge: true});
+                    } 
+                    else if (type === 'locations' && locId) {
+                        const ref = db.collection("warehouse_locations").document(locId);
+                        batch.set(ref, { id: locId }, {merge: true});
+                    }
+                    else if (type === 'inventory' && barcode && locId) {
+                        const ref = db.collection("warehouse_inventory").document(`${barcode}_${locId}`);
+                        batch.set(ref, {
+                            barcode,
+                            locationId: locId,
+                            quantity: parseInt(row.quantity || row['الكمية']) || 0,
+                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                        }, {merge: true});
+                    }
+
+                    counter++;
+                    const progress = Math.round((i / json.length) * 100);
+                    statusBar.style.width = progress + "%";
+                    statusPercent.innerText = progress + "%";
+
+                    if (counter % 450 === 0) {
+                        await batch.commit();
+                        batch = db.batch();
+                    }
+                }
+
+                await batch.commit();
+                statusText.innerText = "تم الرفع بنجاح! البيانات الآن سليمة ونظيفة ✅";
+                showToast("تم تحديث قاعدة البيانات بنجاح", "success");
+                setTimeout(() => statusBox.classList.add('hidden'), 4000);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Listeners
+        document.getElementById('upload-catalog').addEventListener('change', (e) => handleExcel(e.target.files[0], 'catalog'));
+        document.getElementById('upload-locations').addEventListener('change', (e) => handleExcel(e.target.files[0], 'locations'));
+        document.getElementById('upload-inventory').addEventListener('change', (e) => handleExcel(e.target.files[0], 'inventory'));
+
+        // --- 5. LIVE DATA ---
+        db.collection("warehouse_inventory").onSnapshot(snap => {
+            const tbody = document.getElementById('inventory-body');
+            let total = 0, low = 0, locs = new Set();
+            tbody.innerHTML = "";
+            
+            snap.forEach(doc => {
+                const item = doc.data();
+                total += (item.quantity || 0);
+                if(item.quantity < 5) low++;
+                if(item.locationId) locs.add(item.locationId);
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-6 font-bold text-slate-800 tracking-wider">${item.barcode}</td>
+                        <td class="p-6"><span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-black uppercase">${item.locationId}</span></td>
+                        <td class="p-6 font-black text-lg">${item.quantity}</td>
+                        <td class="p-6 text-slate-400 text-xs">${item.lastUpdated?.toDate().toLocaleString('ar-EG') || '---'}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('stat-total').innerText = total.toLocaleString();
+            document.getElementById('stat-low').innerText = low;
+            document.getElementById('stat-locs').innerText = locs.size;
+        });
+
+        // --- 6. UTILS ---
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-32', 'opacity-0'), 4000);
+        }
+
+        showSection('dashboard');
     </script>
 </body>
 </html>
