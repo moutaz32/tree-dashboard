@@ -1974,7 +1974,7 @@
             try {
                 const ws = XLSX.utils.json_to_sheet(data);
                 const wb = XLSX.utils.book_new();
-                XLSX.book_append_sheet(wb, ws, "Sheet1");
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
                 XLSX.writeFile(wb, fileName);
                 logToConsole('success', `تم إنشاء وتحميل النموذج التجريبي: ${fileName}`);
             } catch (err) {
