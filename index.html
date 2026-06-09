@@ -1,199 +1,610 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المستودعات | TREE Warehouse Professional</title>
+    <title>مستودع الشجرة TREE - نظام اللوجستيات المتكامل</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                            deep: '#064e3b',
+                            accent: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Firebase SDKs -->
+
+    <!-- SheetJS (xlsx.full.min.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Firebase App & Firestore SDKs (v10.8.0 compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background-color: #f4f7f9; }
-        
-        /* Sidebar Zoho Style */
-        .sidebar { background-color: #1a2d40; width: 260px; transition: all 0.3s; }
-        .sidebar-item { color: #a3b1c2; transition: all 0.2s; border-right: 4px solid transparent; }
-        .sidebar-item:hover { background-color: #24394d; color: white; }
-        .sidebar-item.active { background-color: #24394d; color: #10b981; border-right-color: #10b981; }
-        
-        /* Table SaaS Style */
-        .saas-table thead { background-color: #f9fafb; border-bottom: 1px solid #edf2f7; }
-        .saas-table th { color: #4a5568; font-weight: 700; font-size: 13px; text-transform: uppercase; }
-        .saas-table td { border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        
-        .loader { border-top-color: #10b981; animation: spinner 1s linear infinite; }
-        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        /* Custom scrollbar styling for a premium feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
-<body class="text-slate-700">
+<body class="h-full flex flex-col md:flex-row text-slate-800 antialiased overflow-hidden">
 
-    <div class="flex h-screen overflow-hidden">
-        <!-- القائمة الجانبية (Zoho Style) -->
-        <aside class="sidebar h-full flex flex-col flex-shrink-0 shadow-xl z-20">
-            <div class="p-6 mb-4 flex flex-col items-center border-b border-slate-700/50">
-                <div class="w-20 h-20 bg-white rounded-xl p-2 mb-3 shadow-inner">
-                    <img src="logo.png" alt="Logo" class="w-full h-full object-contain">
+    <!-- LEFT SIDEBAR (RIGHT in RTL) -->
+    <aside class="w-full md:w-64 bg-brand-deep text-white flex flex-col justify-between flex-shrink-0 border-l border-brand-900/30">
+        <div>
+            <!-- Header Brand -->
+            <div class="px-6 py-5 flex items-center gap-3 border-b border-brand-900/55">
+                <div class="bg-brand-accent p-2 rounded-lg text-brand-deep flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                    <i data-lucide="sprout" class="w-6 h-6"></i>
                 </div>
-                <h2 class="text-white font-extrabold text-lg tracking-tight">TREE <span class="text-emerald-500">WAREHOUSE</span></h2>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight uppercase leading-none">مستودع TREE</h1>
+                    <span class="text-[10px] text-brand-300 font-semibold tracking-wider uppercase">النظام اللوجستي الموحد</span>
+                </div>
             </div>
 
-            <nav class="flex-1 px-2 space-y-1">
-                <button onclick="showSection('dashboard')" id="nav-dashboard" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-md text-right">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> <span class="font-medium">لوحة التحكم</span>
-                </button>
-                <button onclick="showSection('upload')" id="nav-upload" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-md text-right">
-                    <i data-lucide="refresh-cw" class="w-5 h-5"></i> <span class="font-medium">تحديث البيانات</span>
-                </button>
-                <button onclick="showSection('inventory')" id="nav-inventory" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-md text-right border-b border-slate-700/30 pb-4 mb-4">
-                    <i data-lucide="box" class="w-5 h-5"></i> <span class="font-medium">المخزون الفعلي</span>
+            <!-- Navigation Tabs -->
+            <nav class="px-4 py-6 space-y-1">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-brand-900/50 text-white shadow-inner">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5 text-brand-accent"></i>
+                    لوحة التحكم
                 </button>
                 
-                <div class="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest">الإعدادات</div>
-                <button class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-md text-right">
-                    <i data-lucide="users" class="w-5 h-5"></i> <span class="font-medium">الموظفون</span>
+                <button onclick="switchTab('upload')" id="tab-upload" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30">
+                    <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    مركز الرفع (5 ملفات)
+                </button>
+
+                <button onclick="switchTab('inventory')" id="tab-inventory" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30">
+                    <i data-lucide="boxes" class="w-5 h-5"></i>
+                    المخزون والكتالوج
+                </button>
+
+                <button onclick="switchTab('picker')" id="tab-picker" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30">
+                    <i data-lucide="package-check" class="w-5 h-5"></i>
+                    تحضير طلبات شوبيفاي
                 </button>
             </nav>
-            
-            <div class="p-4 border-t border-slate-700/50 text-[10px] text-slate-500 text-center">
-                TREE OS Professional v3.0
+        </div>
+
+        <!-- Firebase Connection Status Badge -->
+        <div class="p-4 border-t border-brand-900/55 bg-brand-900/20">
+            <div class="flex items-center justify-between">
+                <span class="text-xs text-brand-300 font-semibold">حالة اتصال المستودع</span>
+                <span id="connection-badge" class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    جاري الاتصال...
+                </span>
             </div>
-        </aside>
+        </div>
+    </aside>
 
-        <!-- الجزء الرئيسي (Odoo Style Content) -->
-        <div class="flex-1 flex flex-col overflow-hidden bg-[#f4f7f9]">
-            <!-- الشريط العلوي -->
-            <header class="bg-white h-16 border-b flex items-center justify-between px-8 z-10 shadow-sm">
-                <div class="flex items-center gap-4 w-1/2">
-                    <i data-lucide="search" class="text-slate-400 w-5 h-5"></i>
-                    <input type="text" id="globalSearch" placeholder="بحث سريع في المخزن..." class="bg-transparent border-none outline-none text-sm w-full">
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden relative">
+        
+        <!-- Top Header Bar -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <h2 id="current-section-title" class="text-xl font-bold text-slate-800">نظرة عامة</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-slate-500 font-medium hidden md:inline" id="live-time"></span>
+                <div class="h-4 w-px bg-slate-200 hidden md:block"></div>
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span class="text-xs font-bold text-slate-700">المزامنة النشطة</span>
                 </div>
-                <div class="flex items-center gap-4 border-r pr-4">
-                    <div class="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-xs">A</div>
-                    <span class="text-sm font-bold text-slate-600">المدير العام</span>
-                </div>
-            </header>
+            </div>
+        </header>
 
-            <!-- محتوى الصفحة -->
-            <main class="flex-1 overflow-y-auto p-8 custom-scroll">
-                
-                <!-- Dashboard Section -->
-                <div id="section-dashboard" class="section">
-                    <div class="flex justify-between items-end mb-8">
-                        <div>
-                            <h1 class="text-2xl font-bold text-slate-800">التقرير العام للمستودع</h1>
-                            <p class="text-slate-500 text-sm">متابعة دقيقة لكل قطعة في مخزنك</p>
-                        </div>
+        <!-- Dynamic Tabs Content -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-8" id="content-container">
+
+            <!-- ================= DASHBOARD TAB ================= -->
+            <section id="section-dashboard" class="space-y-6">
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-brand-deep to-brand-700 text-white rounded-2xl p-6 md:p-8 shadow-xl shadow-brand-deep/10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="space-y-2">
+                        <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight">نظام لوجستيات TREE للملابس</h3>
+                        <p class="text-brand-100 text-sm max-w-xl">
+                            لوحة التحكم اللوجستية المخصصة لبراند الملابس TREE. قم بجرد وتسكين البضائع في الرفوف واستعلام المخزون فورياً وتوجيه عمال المخزن لتحضير طلبات شوبيفاي بناءً على مواقع الرفوف المحددة.
+                        </p>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                        <div class="bg-white p-6 rounded-lg border shadow-sm">
-                            <p class="text-slate-400 text-xs font-bold uppercase mb-2">إجمالي المخزون</p>
-                            <h3 id="stat-total" class="text-3xl font-extrabold text-slate-800">0</h3>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg border shadow-sm border-r-4 border-r-amber-500">
-                            <p class="text-slate-400 text-xs font-bold uppercase mb-2">النواقص (أقل من 5)</p>
-                            <h3 id="stat-low" class="text-3xl font-extrabold text-amber-600">0</h3>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg border shadow-sm">
-                            <p class="text-slate-400 text-xs font-bold uppercase mb-2">الأماكن المفعلة</p>
-                            <h3 id="stat-locs" class="text-3xl font-extrabold text-slate-800">0</h3>
-                        </div>
-                        <div class="bg-white p-6 rounded-lg border shadow-sm border-r-4 border-r-emerald-500">
-                            <p class="text-slate-400 text-xs font-bold uppercase mb-2">حالة النظام</p>
-                            <h3 class="text-xl font-bold text-emerald-600">نشط الآن</h3>
-                        </div>
+                    <div class="flex gap-3 flex-shrink-0">
+                        <button onclick="switchTab('upload')" class="bg-brand-accent hover:bg-emerald-400 text-brand-deep font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-200 flex items-center gap-2">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
+                            مركز الرفع
+                        </button>
+                        <button onclick="switchTab('picker')" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2">
+                            <i data-lucide="package-check" class="w-4 h-4"></i>
+                            شاشة التحضير
+                        </button>
                     </div>
                 </div>
 
-                <!-- Upload Section (محطات الرفع المنظمة) -->
-                <div id="section-upload" class="section hidden">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <i data-lucide="file-spreadsheet" class="text-emerald-600"></i> استيراد البيانات من Excel
-                    </h2>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="bg-white p-8 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 transition-all flex flex-col items-center group">
-                            <div class="w-14 h-14 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-4 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                                <i data-lucide="book" class="w-7 h-7"></i>
-                            </div>
-                            <h4 class="font-bold text-slate-700 mb-2">كتالوج المنتجات</h4>
-                            <p class="text-xs text-slate-400 text-center mb-6 px-4 leading-relaxed">تحديث بيانات المنتجات والباركودات الرسمية</p>
-                            <input type="file" id="upload-catalog" class="hidden" accept=".xlsx, .xls">
-                            <button onclick="document.getElementById('upload-catalog').click()" class="bg-slate-800 text-white px-6 py-2 rounded font-bold text-sm hover:bg-slate-700 w-full">رفع الملف</button>
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Stat Card 1 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">أصناف الكتالوج</span>
+                            <h4 id="stat-catalog-count" class="text-3xl font-extrabold text-slate-800">0</h4>
+                            <p class="text-[10px] text-slate-400 font-medium">موديلات ملابس مسجلة</p>
                         </div>
-
-                        <div class="bg-white p-8 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 transition-all flex flex-col items-center group">
-                            <div class="w-14 h-14 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-4 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                                <i data-lucide="map-pin" class="w-7 h-7"></i>
-                            </div>
-                            <h4 class="font-bold text-slate-700 mb-2">أماكن التخزين</h4>
-                            <p class="text-xs text-slate-400 text-center mb-6 px-4 leading-relaxed">تحديث قائمة الأرفف والمواقع المتاحة</p>
-                            <input type="file" id="upload-locations" class="hidden" accept=".xlsx, .xls">
-                            <button onclick="document.getElementById('upload-locations').click()" class="bg-slate-800 text-white px-6 py-2 rounded font-bold text-sm hover:bg-slate-700 w-full">رفع الملف</button>
-                        </div>
-
-                        <div class="bg-white p-8 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 transition-all flex flex-col items-center group">
-                            <div class="w-14 h-14 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-4 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                                <i data-lucide="layers" class="w-7 h-7"></i>
-                            </div>
-                            <h4 class="font-bold text-slate-700 mb-2">الرصيد الافتتاحي</h4>
-                            <p class="text-xs text-slate-400 text-center mb-6 px-4 leading-relaxed">توزيع الكميات الحالية على الأرفف</p>
-                            <input type="file" id="upload-inventory" class="hidden" accept=".xlsx, .xls">
-                            <button onclick="document.getElementById('upload-inventory').click()" class="bg-slate-800 text-white px-6 py-2 rounded font-bold text-sm hover:bg-slate-700 w-full">رفع الملف</button>
+                        <div class="bg-emerald-50 p-4 rounded-xl text-brand-700">
+                            <i data-lucide="shirt" class="w-6 h-6"></i>
                         </div>
                     </div>
 
-                    <!-- Progress Bar -->
-                    <div id="status-box" class="hidden mt-8 bg-white p-6 rounded-lg border shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
+                    <!-- Stat Card 2 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">رفوف التخزين</span>
+                            <h4 id="stat-locations-count" class="text-3xl font-extrabold text-slate-800">0</h4>
+                            <p class="text-[10px] text-slate-400 font-medium">مواقع وممرات المستودع</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-xl text-blue-600">
+                            <i data-lucide="map-pin" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 3 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">إجمالي القطع المودعة</span>
+                            <h4 id="stat-total-qty" class="text-3xl font-extrabold text-slate-800">0</h4>
+                            <p class="text-[10px] text-slate-400 font-medium">مجموع المخزون في الرفوف</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-xl text-purple-600">
+                            <i data-lucide="boxes" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 4 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">طلبات معلقة للتحضير</span>
+                            <h4 id="stat-orders-pending-count" class="text-3xl font-extrabold text-slate-800">0</h4>
+                            <p class="text-[10px] text-slate-400 font-medium">مستوردة من شوبيفاي</p>
+                        </div>
+                        <div class="bg-amber-50 p-4 rounded-xl text-amber-600">
+                            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Setup Templates / Quick Action Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-800">مساعد ملفات الأوراق المالية والنماذج</h4>
+                        <p class="text-sm text-slate-500">تحميل النماذج الخمسة الجاهزة بصيغة Excel لرفع كتالوج البضائع وصور وتفاصيل طلبات شوبيفاي والمخازن.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        <button onclick="downloadSampleTemplate('catalog')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
+                            <div class="bg-emerald-100 p-2 rounded-lg text-brand-700 mb-2">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-700 block">1. كتالوج المنتجات</span>
+                                <span class="text-[9px] text-slate-400">Barcode, ProductName, SystemQty, ImageUrl</span>
+                            </div>
+                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                        </button>
+
+                        <button onclick="downloadSampleTemplate('shopify_images')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
+                            <div class="bg-pink-100 p-2 rounded-lg text-pink-600 mb-2">
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-700 block">2. صور شوبيفاي</span>
+                                <span class="text-[9px] text-slate-400">Variant Barcode, Image Src, Title</span>
+                            </div>
+                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                        </button>
+
+                        <button onclick="downloadSampleTemplate('locations')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
+                            <div class="bg-blue-100 p-2 rounded-lg text-blue-600 mb-2">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-700 block">3. مواقع الرفوف</span>
+                                <span class="text-[9px] text-slate-400">id (معرف الرف)</span>
+                            </div>
+                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                        </button>
+
+                        <button onclick="downloadSampleTemplate('inventory')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
+                            <div class="bg-purple-100 p-2 rounded-lg text-purple-600 mb-2">
+                                <i data-lucide="boxes" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-700 block">4. تسكين المخزون</span>
+                                <span class="text-[9px] text-slate-400">Barcode, LocationId, Quantity</span>
+                            </div>
+                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                        </button>
+
+                        <button onclick="downloadSampleTemplate('shopify_orders')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
+                            <div class="bg-amber-100 p-2 rounded-lg text-amber-600 mb-2">
+                                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-700 block">5. طلبات شوبيفاي</span>
+                                <span class="text-[9px] text-slate-400">Name, Lineitem sku, Lineitem name...</span>
+                            </div>
+                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= UPLOAD CENTER TAB ================= -->
+            <section id="section-upload" class="hidden space-y-6">
+                <!-- Page Info Header -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">بوابة رفع ومزامنة البيانات اللوجستية</h3>
+                        <p class="text-sm text-slate-500">قم برفع الكتالوج والمخزون، وتحديث صور المنتجات، ورفع كشف طلبات شوبيفاي للتسكين والتحضير الفوري.</p>
+                    </div>
+                    <div class="bg-emerald-50 text-emerald-800 border border-emerald-100 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        الحد الأقصى للدفعة: 400 سجل
+                    </div>
+                </div>
+
+                <!-- 5 Upload Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                    
+                    <!-- 1. Catalog Upload Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                        <div class="space-y-3">
                             <div class="flex items-center gap-3">
-                                <div class="loader w-5 h-5 border-4 border-slate-200 rounded-full"></div>
-                                <span id="status-text" class="text-sm font-bold text-slate-600 italic">جاري المعالجة...</span>
+                                <div class="bg-emerald-50 p-2 rounded-xl text-brand-700">
+                                    <i data-lucide="library" class="w-5 h-5"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-xs">1. كتالوج المنتجات</h4>
                             </div>
-                            <span id="status-percent" class="text-emerald-600 font-bold">0%</span>
+                            <p class="text-[10px] text-slate-500">تعريف المنتجات ومطابقة الباركود مع اسم الموديل والمخزون النظامي.</p>
+                            <div id="dropzone-catalog" class="border-2 border-dashed border-slate-200 hover:border-brand-accent rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 min-h-[110px] flex flex-col items-center justify-center" onclick="triggerFileInput('file-catalog')">
+                                <input type="file" id="file-catalog" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event, 'catalog')">
+                                <i data-lucide="file-up" class="w-5 h-5 text-slate-400 mb-1"></i>
+                                <span class="text-[10px] font-bold text-slate-600 block">انقر أو اسحب الملف</span>
+                            </div>
+                            <div id="info-catalog" class="hidden flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span id="filename-catalog" class="text-[9px] font-semibold text-slate-700 truncate w-24"></span>
+                                <span id="rows-catalog" class="text-[9px] font-extrabold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="progress-container-catalog" class="hidden space-y-1">
+                                <div class="flex justify-between text-[10px] font-semibold">
+                                    <span id="progress-status-catalog" class="text-slate-600">يرفع...</span>
+                                    <span id="progress-percent-catalog" class="text-brand-accent">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                    <div id="progress-bar-catalog" class="bg-brand-accent h-1.5 rounded-full w-0"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div id="status-bar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <button id="btn-cancel-catalog" onclick="resetUploadCard('catalog')" class="text-[10px] font-bold text-slate-400 hover:text-slate-600" disabled>إلغاء</button>
+                            <button id="btn-upload-catalog" onclick="startFirestoreUpload('catalog')" class="bg-brand-deep hover:bg-brand-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg disabled:opacity-40" disabled>رفع</button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Shopify Images Upload Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-pink-50 p-2 rounded-xl text-pink-600">
+                                    <i data-lucide="image" class="w-5 h-5"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-xs">2. صور شوبيفاي</h4>
+                            </div>
+                            <p class="text-[10px] text-slate-500">ربط وتحديث صور الموديلات والقطع الفورية من شوبيفاي لربطها بالباركود.</p>
+                            <div id="dropzone-shopify_images" class="border-2 border-dashed border-slate-200 hover:border-pink-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 min-h-[110px] flex flex-col items-center justify-center" onclick="triggerFileInput('file-shopify_images')">
+                                <input type="file" id="file-shopify_images" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event, 'shopify_images')">
+                                <i data-lucide="file-up" class="w-5 h-5 text-slate-400 mb-1"></i>
+                                <span class="text-[10px] font-bold text-slate-600 block">انقر أو اسحب الملف</span>
+                            </div>
+                            <div id="info-shopify_images" class="hidden flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span id="filename-shopify_images" class="text-[9px] font-semibold text-slate-700 truncate w-24"></span>
+                                <span id="rows-shopify_images" class="text-[9px] font-extrabold text-pink-600 bg-pink-50 px-1.5 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="progress-container-shopify_images" class="hidden space-y-1">
+                                <div class="flex justify-between text-[10px] font-semibold">
+                                    <span id="progress-status-shopify_images" class="text-slate-600">يرفع...</span>
+                                    <span id="progress-percent-shopify_images" class="text-pink-500">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                    <div id="progress-bar-shopify_images" class="bg-pink-500 h-1.5 rounded-full w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <button id="btn-cancel-shopify_images" onclick="resetUploadCard('shopify_images')" class="text-[10px] font-bold text-slate-400 hover:text-slate-600" disabled>إلغاء</button>
+                            <button id="btn-upload-shopify_images" onclick="startFirestoreUpload('shopify_images')" class="bg-pink-700 hover:bg-pink-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg disabled:opacity-40" disabled>رفع</button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Locations Upload Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-blue-50 p-2 rounded-xl text-blue-600">
+                                    <i data-lucide="navigation" class="w-5 h-5"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-xs">3. مواقع الرفوف</h4>
+                            </div>
+                            <p class="text-[10px] text-slate-500">إضافة وتفعيل معرفات الرفوف وأماكن الحفظ الفيزيائية داخل المستودع.</p>
+                            <div id="dropzone-locations" class="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 min-h-[110px] flex flex-col items-center justify-center" onclick="triggerFileInput('file-locations')">
+                                <input type="file" id="file-locations" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event, 'locations')">
+                                <i data-lucide="file-up" class="w-5 h-5 text-slate-400 mb-1"></i>
+                                <span class="text-[10px] font-bold text-slate-600 block">انقر أو اسحب الملف</span>
+                            </div>
+                            <div id="info-locations" class="hidden flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span id="filename-locations" class="text-[9px] font-semibold text-slate-700 truncate w-24"></span>
+                                <span id="rows-locations" class="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="progress-container-locations" class="hidden space-y-1">
+                                <div class="flex justify-between text-[10px] font-semibold">
+                                    <span id="progress-status-locations" class="text-slate-600">يرفع...</span>
+                                    <span id="progress-percent-locations" class="text-blue-500">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                    <div id="progress-bar-locations" class="bg-blue-500 h-1.5 rounded-full w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <button id="btn-cancel-locations" onclick="resetUploadCard('locations')" class="text-[10px] font-bold text-slate-400 hover:text-slate-600" disabled>إلغاء</button>
+                            <button id="btn-upload-locations" onclick="startFirestoreUpload('locations')" class="bg-blue-700 hover:bg-blue-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg disabled:opacity-40" disabled>رفع</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Inventory Upload Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-purple-50 p-2 rounded-xl text-purple-600">
+                                    <i data-lucide="boxes" class="w-5 h-5"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-xs">4. تسكين البضاعة</h4>
+                            </div>
+                            <p class="text-[10px] text-slate-500">توزيع الملابس وتخزين كمياتها الفعلية في مواقع الرفوف المحددة.</p>
+                            <div id="dropzone-inventory" class="border-2 border-dashed border-slate-200 hover:border-purple-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 min-h-[110px] flex flex-col items-center justify-center" onclick="triggerFileInput('file-inventory')">
+                                <input type="file" id="file-inventory" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event, 'inventory')">
+                                <i data-lucide="file-up" class="w-5 h-5 text-slate-400 mb-1"></i>
+                                <span class="text-[10px] font-bold text-slate-600 block">انقر أو اسحب الملف</span>
+                            </div>
+                            <div id="info-inventory" class="hidden flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span id="filename-inventory" class="text-[9px] font-semibold text-slate-700 truncate w-24"></span>
+                                <span id="rows-inventory" class="text-[9px] font-extrabold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="progress-container-inventory" class="hidden space-y-1">
+                                <div class="flex justify-between text-[10px] font-semibold">
+                                    <span id="progress-status-inventory" class="text-slate-600">يرفع...</span>
+                                    <span id="progress-percent-inventory" class="text-purple-500">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                    <div id="progress-bar-inventory" class="bg-purple-500 h-1.5 rounded-full w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <button id="btn-cancel-inventory" onclick="resetUploadCard('inventory')" class="text-[10px] font-bold text-slate-400 hover:text-slate-600" disabled>إلغاء</button>
+                            <button id="btn-upload-inventory" onclick="startFirestoreUpload('inventory')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg disabled:opacity-40" disabled>رفع</button>
+                        </div>
+                    </div>
+
+                    <!-- 5. Shopify Orders Upload Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-amber-50 p-2 rounded-xl text-amber-600">
+                                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-xs">5. طلبات شوبيفاي</h4>
+                            </div>
+                            <p class="text-[10px] text-slate-500">رفع قائمة طلبات العملاء اليومية لبدء الفرز والتوجيه لمواقع الرفوف لتحضيرها.</p>
+                            <div id="dropzone-shopify_orders" class="border-2 border-dashed border-slate-200 hover:border-amber-500 rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 min-h-[110px] flex flex-col items-center justify-center" onclick="triggerFileInput('file-shopify_orders')">
+                                <input type="file" id="file-shopify_orders" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileSelect(event, 'shopify_orders')">
+                                <i data-lucide="file-up" class="w-5 h-5 text-slate-400 mb-1"></i>
+                                <span class="text-[10px] font-bold text-slate-600 block">انقر أو اسحب الملف</span>
+                            </div>
+                            <div id="info-shopify_orders" class="hidden flex items-center justify-between p-2 bg-slate-50 border border-slate-100 rounded-lg">
+                                <span id="filename-shopify_orders" class="text-[9px] font-semibold text-slate-700 truncate w-24"></span>
+                                <span id="rows-shopify_orders" class="text-[9px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full"></span>
+                            </div>
+                            <div id="progress-container-shopify_orders" class="hidden space-y-1">
+                                <div class="flex justify-between text-[10px] font-semibold">
+                                    <span id="progress-status-shopify_orders" class="text-slate-600">يرفع...</span>
+                                    <span id="progress-percent-shopify_orders" class="text-amber-500">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                    <div id="progress-bar-shopify_orders" class="bg-amber-500 h-1.5 rounded-full w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <button id="btn-cancel-shopify_orders" onclick="resetUploadCard('shopify_orders')" class="text-[10px] font-bold text-slate-400 hover:text-slate-600" disabled>إلغاء</button>
+                            <button id="btn-upload-shopify_orders" onclick="startFirestoreUpload('shopify_orders')" class="bg-amber-700 hover:bg-amber-800 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg disabled:opacity-40" disabled>رفع</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Inventory Section (Professional Grid) -->
-                <div id="section-inventory" class="section hidden">
-                    <div class="bg-white rounded-lg border shadow-sm overflow-hidden">
-                        <div class="p-6 border-b flex items-center justify-between bg-slate-50/50">
-                            <h3 class="font-bold text-slate-700 uppercase text-xs tracking-wider">تفاصيل المخزون الحالي</h3>
+                <!-- Logger/Consolidated Terminal Output -->
+                <div class="bg-slate-900 rounded-2xl p-5 font-mono text-xs text-slate-300 border border-slate-800 space-y-2 shadow-inner">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                        <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">سجل معالجة ومزامنة البيانات لوحة التحكم</span>
+                        <button onclick="clearLogs()" class="text-[10px] text-slate-400 hover:text-white transition-colors bg-slate-800 px-2.5 py-1 rounded-md">مسح السجل</button>
+                    </div>
+                    <div id="upload-console" class="space-y-1 max-h-48 overflow-y-auto pl-2 text-right">
+                        <div class="text-brand-accent">[نظام] تم تشغيل محرك معالجة مستودع TREE. جاهز لاستقبال الملفات...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= LIVE INVENTORY & CATALOG TAB ================= -->
+            <section id="section-inventory" class="hidden space-y-6">
+                <!-- Inner Sub tabs -->
+                <div class="flex items-center gap-2 border-b border-slate-200 pb-px">
+                    <button onclick="switchInventorySubTab('stock')" id="subtab-stock" class="px-5 py-2.5 font-bold text-sm border-b-2 border-brand-accent text-brand-deep transition-all">
+                        مواقع التسكين الفيزيائية
+                    </button>
+                    <button onclick="switchInventorySubTab('catalog')" id="subtab-catalog" class="px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all">
+                        كتالوج المنتجات والصور
+                    </button>
+                </div>
+
+                <!-- Search and Live Metric Header -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="space-y-1">
+                        <h3 id="inventory-sub-title" class="text-lg font-bold text-slate-800">تفاصيل الأصناف والتسكين بالمواقع</h3>
+                        <p class="text-xs text-slate-500">بيانات المخزن الحية ومواقع الرفوف المحدثة لحظياً.</p>
+                    </div>
+
+                    <!-- Live Aggregation Panel -->
+                    <div class="flex items-center gap-6 bg-slate-50 border border-slate-200/80 p-4 rounded-xl">
+                        <div class="space-y-0.5">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">إجمالي قطع المخزن</span>
+                            <div class="flex items-baseline gap-1.5">
+                                <span id="inventory-total-qty" class="text-3xl font-black text-brand-deep leading-none">0</span>
+                                <span class="text-xs text-brand-accent font-extrabold">قطعة</span>
+                            </div>
                         </div>
-                        <table class="saas-table w-full text-right">
-                            <thead>
-                                <tr>
-                                    <th class="p-4">الباركود</th>
-                                    <th class="p-4">الموقع</th>
-                                    <th class="p-4">الكمية</th>
-                                    <th class="p-4">الحالة</th>
-                                </tr>
+                        <div class="w-px h-10 bg-slate-200"></div>
+                        <div class="space-y-0.5">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">الأنواع/المواقع الفريدة</span>
+                            <div class="flex items-baseline gap-1.5">
+                                <span id="inventory-total-records" class="text-2xl font-extrabold text-slate-700 leading-none">0</span>
+                                <span class="text-[10px] text-slate-500 font-semibold">سجل</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters and Table container -->
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+                    <!-- Table Header Tools -->
+                    <div class="p-4 bg-slate-50/50 border-b border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3">
+                        <div class="relative w-full md:w-80">
+                            <i data-lucide="search" class="w-4 h-4 absolute right-3 top-3.5 text-slate-400"></i>
+                            <input type="text" id="inventory-search" oninput="filterInventory()" placeholder="ابحث بالباركود، الاسم أو الموقع..." 
+                                   class="w-full pr-9 pl-4 py-2 border border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-accent/30 focus:border-brand-accent rounded-xl text-sm transition">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-sort-primary" onclick="sortInventoryData('barcode')" class="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-semibold text-slate-600 transition">
+                                <i data-lucide="sort-asc" class="w-3.5 h-3.5"></i> ترتيب الباركود
+                            </button>
+                            <button id="btn-sort-secondary" onclick="sortInventoryData('locationId')" class="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-xs font-semibold text-slate-600 transition">
+                                <i data-lucide="sort-asc" class="w-3.5 h-3.5"></i> ترتيب الموقع
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Dynamic Table -->
+                    <div class="overflow-x-auto min-h-[350px]">
+                        <table class="w-full text-right border-collapse">
+                            <thead id="inventory-table-head">
+                                <!-- Dynamic Headers based on active subtab -->
                             </thead>
-                            <tbody id="inventory-table-body">
-                                <!-- Data -->
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                                <!-- Dynamic records go here -->
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Client Pagination Controls -->
+                    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50/40">
+                        <span id="pagination-status" class="text-xs text-slate-500 font-semibold">يعرض 0 من أصل 0 سجل</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="changePage(-1)" id="btn-prev" class="p-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent" disabled>
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="changePage(1)" id="btn-next" class="p-2 border border-slate-200 hover:bg-slate-100 rounded-xl text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent" disabled>
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </main>
+            </section>
+
+            <!-- ================= ORDER PICKER TAB ================= -->
+            <section id="section-picker" class="hidden space-y-6">
+                <!-- Welcome Banner -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">شاشة فرز وتحضير طلبات شوبيفاي الفورية</h3>
+                        <p class="text-sm text-slate-500">يقوم النظام تلقائياً بربط القطع المطلوبة في الطلبات بمواقع تخزينها الفيزيائية (الرفوف) لإرشاد عمال المخزن للتحضير السريع.</p>
+                    </div>
+                    <div class="bg-amber-50 text-amber-800 border border-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <i data-lucide="package" class="w-4 h-4 animate-bounce"></i>
+                        بانتظار التحضير
+                    </div>
+                </div>
+
+                <!-- Live Orders Stack -->
+                <div id="picker-orders-container" class="space-y-6">
+                    <!-- Dynamic Orders go here -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-16 text-center text-slate-400">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <i data-lucide="package-search" class="w-10 h-10 text-slate-300"></i>
+                            <p class="font-bold text-slate-700">لا توجد طلبات معلقة بانتظار التحضير</p>
+                            <p class="text-xs text-slate-400">ارفع ملف طلبات شوبيفاي اليومي من "مركز الرفع" للبدء في توجيه الموظفين للرفوف.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
 
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-10 left-10 bg-slate-900 text-white px-6 py-3 rounded shadow-2xl opacity-0 translate-y-10 transition-all duration-500 z-[100] text-sm font-bold">
-        تمت العملية بنجاح ✅
-    </div>
-
+    <!-- UI JAVASCRIPT LOGIC -->
     <script>
-        // --- 1. CONFIG ---
+        // HARDCODED FIREBASE CONFIGURATION OBJECT
         const firebaseConfig = {
             apiKey: "AIzaSyC46UwQuB1LBisOsXhcl9xiN3BU7lc6T5E",
             authDomain: "tree-warehouse.firebaseapp.com",
@@ -202,133 +613,1040 @@
             messagingSenderId: "945224497267",
             appId: "1:945224497267:web:467340f09be738d0175206"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        lucide.createIcons();
 
-        // --- 2. BARCODE CLEANER (الحل للمطب) ---
-        function cleanBarcode(raw) {
-            if (!raw) return "";
-            let s = raw.toString().trim();
-            if (s.startsWith("'")) s = s.substring(1);
-            if (s.endsWith(".0")) s = s.substring(0, s.length - 2);
-            return s.replace(/\s+/g, '');
+        // دالة تنظيف الباركود الموحدة (إزالة الحقول الفارغة والشرطات والبادئة TR)
+        function cleanBarcode(rawBarcode) {
+            if (!rawBarcode) return '';
+            // تنظيف الحروف الخاصة والشرطة البادئة كما هو مطلوب
+            let cleaned = rawBarcode.toString().replace(/['"]/g, '').replace(/^-/, '').trim();
+            // إزالة بادئة "TR" أو "tr" التابعة للبراند إذا وجدت في البداية
+            if (cleaned.toUpperCase().startsWith('TR')) {
+                cleaned = cleaned.substring(2);
+            }
+            return cleaned.replace(/^-/, '').trim();
         }
 
-        // --- 3. UI LOGIC ---
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById('section-' + id).classList.remove('hidden');
-            document.getElementById('nav-' + id).classList.add('active');
+        // App state variables
+        let db = null;
+        let activeTab = 'dashboard';
+        let activeInventorySubTab = 'stock';
+        let parsedFiles = {
+            catalog: null,
+            shopify_images: null,
+            locations: null,
+            inventory: null,
+            shopify_orders: null
+        };
+
+        // Live collections arrays
+        let liveInventoryData = [];
+        let liveCatalogData = [];
+        let liveLocationsData = [];
+        let liveOrdersData = [];
+
+        // UI processing tables arrays
+        let tableData = [];
+        let filteredTableData = [];
+        let isUploading = {
+            catalog: false,
+            shopify_images: false,
+            locations: false,
+            inventory: false,
+            shopify_orders: false
+        };
+
+        // Pagination parameters
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        let currentSort = {
+            field: 'barcode',
+            order: 'asc'
+        };
+
+        // Real-time listener unsubscribers
+        let unsubscribers = {
+            inventory: null,
+            catalog: null,
+            locations: null,
+            shopify_orders: null
+        };
+
+        // DOM Initializations
+        document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            updateClock();
+            setInterval(updateClock, 1000);
+            initializeDatabaseConnection();
+        });
+
+        function updateClock() {
+            const timeEl = document.getElementById('live-time');
+            if (timeEl) {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleDateString('ar-EG', { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric' 
+                }) + ' - ' + now.toLocaleTimeString('ar-EG', { hour12: false });
+            }
         }
 
-        // --- 4. EXCEL PROCESSING ---
-        async function handleUpload(file, type) {
-            const statusBox = document.getElementById('status-box');
-            const statusText = document.getElementById('status-text');
-            const statusBar = document.getElementById('status-bar');
-            const statusPercent = document.getElementById('status-percent');
+        // ================= DATABASE INITIALIZATION =================
+        async function initializeDatabaseConnection() {
+            updateBadge('connecting', 'جاري الاتصال...');
+            logToConsole('system', 'جاري تشغيل الاتصال بالـ Firestore...');
 
-            statusBox.classList.remove('hidden');
-            statusText.innerText = "جاري قراءة الملف وتطهير الباركودات...";
-            
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {raw: false});
-                
-                let batch = db.batch();
-                let count = 0;
-
-                for (let i = 0; i < json.length; i++) {
-                    const row = json[i];
-                    const barcode = cleanBarcode(row.barcode || row['باركود'] || row['Barcode']);
-                    const locId = (row.locationId || row['المكان'] || row['Location'])?.toString().trim();
-
-                    if (type === 'catalog' && barcode) {
-                        const ref = db.collection("ProductsCatalog").document(barcode);
-                        batch.set(ref, {
-                            barcode,
-                            productName: (row.productName || row['الاسم'] || "Unknown").toString().trim(),
-                            systemQty: parseInt(row.systemQty || row['الكمية']) || 0,
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        }, {merge: true});
-                    } 
-                    else if (type === 'locations' && locId) {
-                        const ref = db.collection("warehouse_locations").document(locId);
-                        batch.set(ref, { id: locId }, {merge: true});
-                    }
-                    else if (type === 'inventory' && barcode && locId) {
-                        const ref = db.collection("warehouse_inventory").document(`${barcode}_${locId}`);
-                        batch.set(ref, {
-                            barcode,
-                            locationId: locId,
-                            quantity: parseInt(row.quantity || row['الكمية']) || 0,
-                            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                        }, {merge: true});
-                    }
-
-                    count++;
-                    const progress = Math.round((i / json.length) * 100);
-                    statusBar.style.width = progress + "%";
-                    statusPercent.innerText = progress + "%";
-
-                    if (count % 450 === 0) {
-                        await batch.commit();
-                        batch = db.batch();
-                    }
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
                 }
-                await batch.commit();
-                statusBox.classList.add('hidden');
-                showToast();
+                db = firebase.firestore();
+
+                updateBadge('connected', 'متصل');
+                logToConsole('success', `تم الاتصال بنجاح. [معرف المشروع: ${firebaseConfig.projectId}]`);
+                
+                setupRealtimeListeners();
+
+            } catch (error) {
+                console.error("Firebase init failed:", error);
+                updateBadge('failed', 'فشل الاتصال');
+                logToConsole('error', `خطأ في إعدادات الاتصال: ${error.message}`);
+                alert("فشل الاتصال بـ Firebase. يرجى التحقق من المفاتيح المكتوبة في الكود.");
+            }
+        }
+
+        function updateBadge(status, text) {
+            const badge = document.getElementById('connection-badge');
+            if (!badge) return;
+
+            badge.className = "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold";
+            
+            let dotHtml = '';
+            if (status === 'connecting') {
+                badge.classList.add('bg-amber-500/20', 'text-amber-300');
+                dotHtml = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>';
+            } else if (status === 'connected') {
+                badge.classList.add('bg-emerald-500/20', 'text-emerald-400');
+                dotHtml = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>';
+            } else {
+                badge.classList.add('bg-rose-500/20', 'text-rose-400');
+                dotHtml = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>';
+            }
+            badge.innerHTML = dotHtml + text;
+        }
+
+        // ================= TAB ROUTING LOGIC =================
+        function switchTab(tabId) {
+            if (isAnyCardUploading()) {
+                alert("هناك عملية رفع جارية حالياً إلى قاعدة البيانات. يرجى الانتظار حتى الانتهاء.");
+                return;
+            }
+
+            activeTab = tabId;
+            const sections = ['dashboard', 'upload', 'inventory', 'picker'];
+            
+            sections.forEach(s => {
+                const sect = document.getElementById(`section-${s}`);
+                const tabBtn = document.getElementById(`tab-${s}`);
+                
+                if (s === tabId) {
+                    sect.classList.remove('hidden');
+                    tabBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-brand-900/50 text-white shadow-inner";
+                    const icon = tabBtn.querySelector('svg, i');
+                    if (icon) icon.classList.add('text-brand-accent');
+                } else {
+                    sect.classList.add('hidden');
+                    tabBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30";
+                    const icon = tabBtn.querySelector('svg, i');
+                    if (icon) icon.classList.remove('text-brand-accent');
+                }
+            });
+
+            const titles = {
+                dashboard: 'لوحة التحكم واللوجستيات',
+                upload: 'بوابة رفع جداول المخازن وشوبيفاي',
+                inventory: 'المخازن والكتالوجات الحية',
+                picker: 'تحضير وفرز طلبات شوبيفاي'
             };
+            document.getElementById('current-section-title').textContent = titles[tabId];
+
+            if (tabId === 'inventory') {
+                switchInventorySubTab(activeInventorySubTab);
+            }
+        }
+
+        function isAnyCardUploading() {
+            return isUploading.catalog || isUploading.shopify_images || isUploading.locations || isUploading.inventory || isUploading.shopify_orders;
+        }
+
+        // ================= REAL-TIME DB SYNC & LISTENING =================
+        function setupRealtimeListeners() {
+            if (unsubscribers.inventory) unsubscribers.inventory();
+            if (unsubscribers.catalog) unsubscribers.catalog();
+            if (unsubscribers.locations) unsubscribers.locations();
+            if (unsubscribers.shopify_orders) unsubscribers.shopify_orders();
+
+            if (!db) return;
+
+            // 1. Live Inventory Listener
+            unsubscribers.inventory = db.collection('warehouse_inventory').onSnapshot(snapshot => {
+                liveInventoryData = [];
+                let totalUnits = 0;
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    liveInventoryData.push({
+                        barcode: data.barcode,
+                        locationId: data.locationId,
+                        quantity: Number(data.quantity || 0)
+                    });
+                    totalUnits += Number(data.quantity || 0);
+                });
+
+                document.getElementById('stat-total-qty').textContent = totalUnits.toLocaleString('ar-EG');
+                
+                if (activeInventorySubTab === 'stock') {
+                    document.getElementById('inventory-total-qty').textContent = totalUnits.toLocaleString('ar-EG');
+                    document.getElementById('inventory-total-records').textContent = liveInventoryData.length.toLocaleString('ar-EG');
+                    filterInventory();
+                }
+                
+                // Refresh Order Picker because locations/quantities might have changed
+                renderOrderPicker();
+            }, err => {
+                console.error("Live inventory snapshot error:", err);
+            });
+
+            // 2. ProductsCatalog
+            unsubscribers.catalog = db.collection('ProductsCatalog').onSnapshot(snapshot => {
+                liveCatalogData = [];
+                snapshot.forEach(doc => {
+                    liveCatalogData.push(doc.data());
+                });
+                document.getElementById('stat-catalog-count').textContent = liveCatalogData.length.toLocaleString('ar-EG');
+                
+                if (activeInventorySubTab === 'catalog') {
+                    let totalCatalogQty = liveCatalogData.reduce((sum, item) => sum + Number(item.systemQty || 0), 0);
+                    document.getElementById('inventory-total-qty').textContent = totalCatalogQty.toLocaleString('ar-EG');
+                    document.getElementById('inventory-total-records').textContent = liveCatalogData.length.toLocaleString('ar-EG');
+                    filterInventory();
+                }
+            }, err => {
+                console.error("Catalog snapshot error:", err);
+            });
+
+            // 3. Locations
+            unsubscribers.locations = db.collection('warehouse_locations').onSnapshot(snapshot => {
+                liveLocationsData = [];
+                snapshot.forEach(doc => {
+                    liveLocationsData.push(doc.data());
+                });
+                document.getElementById('stat-locations-count').textContent = liveLocationsData.length.toLocaleString('ar-EG');
+            }, err => {
+                console.error("Locations snapshot error:", err);
+            });
+
+            // 4. Shopify Orders
+            unsubscribers.shopify_orders = db.collection('shopify_orders').onSnapshot(snapshot => {
+                liveOrdersData = [];
+                snapshot.forEach(doc => {
+                    liveOrdersData.push(doc.data());
+                });
+
+                // Calculate pending orders
+                const pendingOrders = liveOrdersData.filter(o => o.status === 'pending');
+                // Unique orders count
+                const uniquePendingOrders = [...new Set(pendingOrders.map(o => o.orderNumber))];
+                document.getElementById('stat-orders-pending-count').textContent = uniquePendingOrders.length.toLocaleString('ar-EG');
+
+                renderOrderPicker();
+            }, err => {
+                console.error("Shopify orders snapshot error:", err);
+            });
+        }
+
+        // ================= SHEETJS PARSING & DRAG-DROP =================
+        function triggerFileInput(inputId) {
+            if (isAnyCardUploading()) return;
+            document.getElementById(inputId).click();
+        }
+
+        function highlightDropZone(id, borderClass = 'border-brand-accent') {
+            if (isAnyCardUploading()) return;
+            const el = document.getElementById(id);
+            el.classList.remove('border-slate-200');
+            el.classList.add(borderClass, 'bg-slate-100/50');
+        }
+
+        function unhighlightDropZone(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('border-brand-accent', 'border-blue-500', 'border-purple-500', 'border-pink-500', 'border-amber-500', 'bg-slate-100/50');
+            el.classList.add('border-slate-200');
+        }
+
+        function handleFileDrop(e, type) {
+            e.preventDefault();
+            unhighlightDropZone(`dropzone-${type}`);
+            if (isAnyCardUploading()) return;
+
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                processRawFile(e.dataTransfer.files[0], type);
+            }
+        }
+
+        function handleFileSelect(e, type) {
+            if (e.target.files && e.target.files.length > 0) {
+                processRawFile(e.target.files[0], type);
+            }
+        }
+
+        function processRawFile(file, type) {
+            logToConsole('system', `جاري قراءة ملف ${type}: ${file.name}`);
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[firstSheetName];
+                    const rawJson = XLSX.utils.sheet_to_json(sheet);
+                    
+                    if (!rawJson || rawJson.length === 0) {
+                        alert("الملف فارغ أو تعذرت قراءته.");
+                        return;
+                    }
+
+                    const records = mapParsedData(rawJson, type);
+                    
+                    if (records.length === 0) {
+                        alert("لا توجد حقول متطابقة. يرجى مراجعة عناوين الأعمدة المطلوبة وتجربة تحميل النموذج.");
+                        return;
+                    }
+
+                    parsedFiles[type] = records;
+                    
+                    document.getElementById(`dropzone-${type}`).classList.add('hidden');
+                    
+                    const infoPanel = document.getElementById(`info-${type}`);
+                    infoPanel.classList.remove('hidden');
+                    document.getElementById(`filename-${type}`).textContent = file.name;
+                    document.getElementById(`rows-${type}`).textContent = `${records.length} سجل`;
+
+                    document.getElementById(`btn-upload-${type}`).removeAttribute('disabled');
+                    document.getElementById(`btn-cancel-${type}`).removeAttribute('disabled');
+                    
+                    logToConsole('success', `تم تحميل ومعالجة ${records.length} سجل من الملف: ${file.name}. جاهز للمزامنة.`);
+                } catch (err) {
+                    console.error("SheetJS parse failure:", err);
+                    alert("تعذرت قراءة الملف: " + err.message);
+                    logToConsole('error', `فشل في تحليل ملف ${file.name}: ${err.message}`);
+                }
+            };
+
             reader.readAsArrayBuffer(file);
         }
 
-        document.getElementById('upload-catalog').addEventListener('change', (e) => handleUpload(e.target.files[0], 'catalog'));
-        document.getElementById('upload-locations').addEventListener('change', (e) => handleUpload(e.target.files[0], 'locations'));
-        document.getElementById('upload-inventory').addEventListener('change', (e) => handleUpload(e.target.files[0], 'inventory'));
+        // Helper to normalize and map sheet columns based on expected fields
+        function mapParsedData(json, type) {
+            const mapped = [];
 
-        // --- 5. DATA SYNC ---
-        db.collection("warehouse_inventory").onSnapshot(snap => {
+            json.forEach(row => {
+                const keys = Object.keys(row);
+                const findVal = (possibleKeys) => {
+                    const matchedKey = keys.find(k => 
+                        possibleKeys.includes(k.toLowerCase().replace(/[\s_-]/g, ''))
+                    );
+                    return matchedKey ? row[matchedKey] : null;
+                };
+
+                if (type === 'catalog') {
+                    const rawBarcode = findVal(['barcode', 'itemcode', 'upc', 'sku', 'code', 'الباركود', 'كودالصنف']);
+                    const productName = findVal(['productname', 'name', 'itemname', 'description', 'title', 'المنتج', 'اسمالمنتج', 'اسم_المنتج']);
+                    const systemQty = findVal(['systemqty', 'quantity', 'qty', 'count', 'amount', 'systemquantity', 'الكمية', 'الكمية_النظامية', 'الكميةالنظامية']);
+                    const imageUrl = findVal(['imageurl', 'image', 'img', 'src', 'رابطالصورة', 'الصورة', 'رابط_الصورة']);
+
+                    const cleanBarcodeVal = cleanBarcode(rawBarcode);
+
+                    if (cleanBarcodeVal && productName) {
+                        mapped.push({
+                            barcode: cleanBarcodeVal,
+                            productName: String(productName).trim(),
+                            systemQty: systemQty !== null ? Number(systemQty) : 0,
+                            imageUrl: imageUrl ? String(imageUrl).trim() : ''
+                        });
+                    }
+                } 
+                else if (type === 'shopify_images') {
+                    const rawBarcode = findVal(['variantbarcode', 'barcode', 'sku', 'itemcode', 'الباركود', 'باركودالمنتج']);
+                    const imageSrc = findVal(['imagesrc', 'image', 'src', 'img', 'رابطالصورة', 'الصورة']);
+                    const title = findVal(['title', 'name', 'productname', 'المنتج', 'اسمالمنتج']);
+
+                    const cleanBarcodeVal = cleanBarcode(rawBarcode);
+
+                    if (cleanBarcodeVal && imageSrc) {
+                        mapped.push({
+                            barcode: cleanBarcodeVal,
+                            imageUrl: String(imageSrc).trim(),
+                            productName: title ? String(title).trim() : ''
+                        });
+                    }
+                }
+                else if (type === 'locations') {
+                    const id = findVal(['id', 'location', 'locationid', 'zone', 'shelf', 'الموقع', 'معرفالموقع', 'رقمالموقع']);
+                    if (id) {
+                        mapped.push({
+                            id: String(id).trim()
+                        });
+                    }
+                } 
+                else if (type === 'inventory') {
+                    const rawBarcode = findVal(['barcode', 'itemcode', 'upc', 'sku', 'code', 'الباركود', 'كودالصنف']);
+                    const locationId = findVal(['locationid', 'location', 'id', 'zone', 'shelf', 'الموقع', 'معرفالموقع', 'رقمالموقع']);
+                    const quantity = findVal(['quantity', 'qty', 'count', 'amount', 'الكمية', 'الكمية_الفعلية', 'الكميةالفعلية']);
+
+                    const cleanBarcodeVal = cleanBarcode(rawBarcode);
+
+                    if (cleanBarcodeVal && locationId) {
+                        mapped.push({
+                            barcode: cleanBarcodeVal,
+                            locationId: String(locationId).trim(),
+                            quantity: quantity !== null ? Number(quantity) : 0
+                        });
+                    }
+                }
+                else if (type === 'shopify_orders') {
+                    const name = findVal(['name', 'order', 'ordernumber', 'رقمالطلب', 'الطلب']);
+                    const rawBarcode = findVal(['lineitemsku', 'sku', 'barcode', 'itemcode', 'الباركود', 'كودالقطعة']);
+                    const itemName = findVal(['lineitemname', 'itemname', 'name', 'title', 'المنتج', 'اسمالمنتج']);
+                    const quantity = findVal(['lineitemquantity', 'quantity', 'qty', 'الكمية', 'الكميةالمطلوبة']);
+                    const shippingName = findVal(['shippingname', 'customer', 'customername', 'العميل', 'اسم_العميل', 'اسمالعميل']);
+
+                    const cleanBarcodeVal = cleanBarcode(rawBarcode);
+
+                    if (name && cleanBarcodeVal && quantity) {
+                        mapped.push({
+                            orderNumber: String(name).trim(),
+                            sku: cleanBarcodeVal,
+                            itemName: itemName ? String(itemName).trim() : '',
+                            quantity: Number(quantity),
+                            customerName: shippingName ? String(shippingName).trim() : 'عميل شوبيفاي'
+                        });
+                    }
+                }
+            });
+
+            return mapped;
+        }
+
+        function resetUploadCard(type) {
+            parsedFiles[type] = null;
+            document.getElementById(`file-${type}`).value = '';
+            
+            document.getElementById(`progress-container-${type}`).classList.add('hidden');
+            document.getElementById(`progress-bar-${type}`).style.width = '0%';
+
+            document.getElementById(`info-${type}`).classList.add('hidden');
+            document.getElementById(`dropzone-${type}`).classList.remove('hidden');
+
+            document.getElementById(`btn-upload-${type}`).setAttribute('disabled', 'true');
+            document.getElementById(`btn-cancel-${type}`).setAttribute('disabled', 'true');
+            
+            logToConsole('system', `تم إفراغ بطاقة ${type}.`);
+        }
+
+        // ================= FIREBASE BATCH WRITE ENGINE =================
+        async function startFirestoreUpload(type) {
+            if (!db) {
+                alert("قاعدة البيانات غير متصلة.");
+                return;
+            }
+
+            const data = parsedFiles[type];
+            if (!data || data.length === 0) return;
+
+            isUploading[type] = true;
+            disableFormButtons(type, true);
+
+            const progressContainer = document.getElementById(`progress-container-${type}`);
+            const progressBar = document.getElementById(`progress-bar-${type}`);
+            const progressPercent = document.getElementById(`progress-percent-${type}`);
+            const progressStatus = document.getElementById(`progress-status-${type}`);
+
+            progressContainer.classList.remove('hidden');
+            progressStatus.textContent = "جاري الحفظ بقاعدة البيانات...";
+            progressBar.style.width = "0%";
+            progressPercent.textContent = "0%";
+
+            const totalRecords = data.length;
+            const batchLimit = 400; // Batch limit specified in requirements
+            let processed = 0;
+
+            logToConsole('system', `بدء المزامنة الفورية لـ ${totalRecords} سجل في Firestore...`);
+
+            try {
+                let batch = db.batch();
+                let operationsInBatch = 0;
+
+                for (let i = 0; i < totalRecords; i++) {
+                    const item = data[i];
+
+                    if (type === 'catalog') {
+                        const ref = db.collection('ProductsCatalog').doc(item.barcode);
+                        batch.set(ref, item, { merge: true });
+                    } 
+                    else if (type === 'shopify_images') {
+                        // Merging image source into ProductsCatalog
+                        const ref = db.collection('ProductsCatalog').doc(item.barcode);
+                        batch.set(ref, {
+                            imageUrl: item.imageUrl
+                        }, { merge: true });
+                    }
+                    else if (type === 'locations') {
+                        const ref = db.collection('warehouse_locations').doc(item.id);
+                        batch.set(ref, item);
+                    } 
+                    else if (type === 'inventory') {
+                        const cleanBarcodeVal = cleanBarcode(item.barcode);
+                        // Document ID MUST be ${barcode}_${locationId}
+                        const docId = `${cleanBarcodeVal}_${item.locationId}`;
+                        const ref = db.collection('warehouse_inventory').doc(docId);
+                        batch.set(ref, {
+                            barcode: cleanBarcodeVal,
+                            locationId: item.locationId,
+                            quantity: Number(item.quantity)
+                        });
+                    }
+                    else if (type === 'shopify_orders') {
+                        // Shopify Orders Document ID: `${orderNumber}_${sku}`
+                        const docId = `${item.orderNumber}_${item.sku}`;
+                        const ref = db.collection('shopify_orders').doc(docId);
+                        batch.set(ref, {
+                            orderNumber: item.orderNumber,
+                            sku: item.sku,
+                            itemName: item.itemName,
+                            quantity: Number(item.quantity),
+                            customerName: item.customerName,
+                            status: 'pending',
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    }
+
+                    operationsInBatch++;
+                    processed++;
+
+                    // Commit batch exactly every 400 records
+                    if (operationsInBatch === batchLimit || processed === totalRecords) {
+                        const batchNum = Math.ceil(processed / batchLimit);
+                        progressStatus.textContent = `جاري إرسال الدفعة #${batchNum}...`;
+                        
+                        await batch.commit();
+                        
+                        const pct = Math.round((processed / totalRecords) * 100);
+                        progressBar.style.width = `${pct}%`;
+                        progressPercent.textContent = `${pct}%`;
+                        
+                        logToConsole('success', `تم إرسال الدفعة رقم #${batchNum} بنجاح (عدد ${operationsInBatch} سجل).`);
+                        
+                        if (processed < totalRecords) {
+                            batch = db.batch();
+                            operationsInBatch = 0;
+                        }
+                    }
+                }
+
+                progressStatus.textContent = "مكتمل!";
+                logToConsole('success', `تمت المزامنة بنجاح! تم رفع ${processed}/${totalRecords} سجل إلى Firestore.`);
+                alert(`اكتمل رفع ملف ${type} بنجاح! تم مزامنة ${processed} سجل.`);
+                
+                resetUploadCard(type);
+
+            } catch (err) {
+                console.error("Firestore batch commit failure:", err);
+                progressStatus.textContent = "فشل!";
+                progressBar.classList.add('bg-rose-500');
+                logToConsole('error', `توقفت العملية بسبب خطأ في الإدخال: ${err.message}`);
+                alert("فشلت عملية الرفع. يرجى مراجعة وحدة الكونسول لمعرفة الأخطاء.");
+            } finally {
+                isUploading[type] = false;
+                disableFormButtons(type, false);
+            }
+        }
+
+        function disableFormButtons(type, disable) {
+            const uploadBtn = document.getElementById(`btn-upload-${type}`);
+            const cancelBtn = document.getElementById(`btn-cancel-${type}`);
+            if (disable) {
+                uploadBtn.setAttribute('disabled', 'true');
+                cancelBtn.setAttribute('disabled', 'true');
+            } else {
+                uploadBtn.removeAttribute('disabled');
+                cancelBtn.removeAttribute('disabled');
+            }
+        }
+
+        // ================= INVENTORY & CATALOG TABLES =================
+        function switchInventorySubTab(subTabId) {
+            activeInventorySubTab = subTabId;
+            
+            const subtabStock = document.getElementById('subtab-stock');
+            const subtabCatalog = document.getElementById('subtab-catalog');
+            const subTitle = document.getElementById('inventory-sub-title');
+            
+            if (subTabId === 'stock') {
+                subtabStock.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-brand-accent text-brand-deep transition-all";
+                subtabCatalog.className = "px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all";
+                subTitle.textContent = "تفاصيل الأصناف والتسكين بالمواقع";
+                
+                let totalStockQty = liveInventoryData.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+                document.getElementById('inventory-total-qty').textContent = totalStockQty.toLocaleString('ar-EG');
+                document.getElementById('inventory-total-records').textContent = liveInventoryData.length.toLocaleString('ar-EG');
+            } else {
+                subtabCatalog.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-brand-accent text-brand-deep transition-all";
+                subtabStock.className = "px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all";
+                subTitle.textContent = "كتالوج منتجات الملبوسات والصور المزامنة";
+                
+                let totalCatalogQty = liveCatalogData.reduce((sum, item) => sum + Number(item.systemQty || 0), 0);
+                document.getElementById('inventory-total-qty').textContent = totalCatalogQty.toLocaleString('ar-EG');
+                document.getElementById('inventory-total-records').textContent = liveCatalogData.length.toLocaleString('ar-EG');
+            }
+
+            filterInventory();
+        }
+
+        function filterInventory() {
+            const query = document.getElementById('inventory-search').value.toLowerCase().trim();
+            
+            if (activeInventorySubTab === 'stock') {
+                if (!query) {
+                    filteredTableData = [...liveInventoryData];
+                } else {
+                    filteredTableData = liveInventoryData.filter(item => 
+                        item.barcode.toLowerCase().includes(query) || 
+                        item.locationId.toLowerCase().includes(query)
+                    );
+                }
+            } else {
+                if (!query) {
+                    filteredTableData = [...liveCatalogData];
+                } else {
+                    filteredTableData = liveCatalogData.filter(item => 
+                        item.barcode.toLowerCase().includes(query) || 
+                        (item.productName && item.productName.toLowerCase().includes(query))
+                    );
+                }
+            }
+
+            sortArray(filteredTableData, currentSort.field, currentSort.order);
+            currentPage = 1;
+            renderInventoryTable();
+        }
+
+        function sortInventoryData(field) {
+            if (currentSort.field === field) {
+                currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.order = 'asc';
+            }
+            sortArray(filteredTableData, currentSort.field, currentSort.order);
+            renderInventoryTable();
+        }
+
+        function sortArray(arr, field, order) {
+            arr.sort((a, b) => {
+                let valA = a[field] || '';
+                let valB = b[field] || '';
+
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+
+                if (valA < valB) return order === 'asc' ? -1 : 1;
+                if (valA > valB) return order === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function renderInventoryTable() {
             const tbody = document.getElementById('inventory-table-body');
-            let total = 0, low = 0, locs = new Set();
-            tbody.innerHTML = "";
-            snap.forEach(doc => {
-                const item = doc.data();
-                total += (item.quantity || 0);
-                if (item.quantity < 5) low++;
-                if (item.locationId) locs.add(item.locationId);
+            const thead = document.getElementById('inventory-table-head');
+            const total = filteredTableData.length;
 
-                tbody.innerHTML += `
+            if (activeInventorySubTab === 'stock') {
+                thead.innerHTML = `
+                    <tr class="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4">الرقم</th>
+                        <th class="px-6 py-4">الباركود</th>
+                        <th class="px-6 py-4 text-right">معرّف الموقع (الرف)</th>
+                        <th class="px-6 py-4 text-left">الكمية المودعة فعلياً</th>
+                    </tr>
+                `;
+            } else {
+                thead.innerHTML = `
+                    <tr class="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4">الصورة</th>
+                        <th class="px-6 py-4">الباركود</th>
+                        <th class="px-6 py-4 text-right">اسم الموديل والمنتج</th>
+                        <th class="px-6 py-4 text-left">الكمية النظامية</th>
+                    </tr>
+                `;
+            }
+
+            if (total === 0) {
+                tbody.innerHTML = `
                     <tr>
-                        <td class="p-4 font-bold text-slate-700">${item.barcode}</td>
-                        <td class="p-4"><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-[11px] font-bold uppercase">${item.locationId}</span></td>
-                        <td class="p-4 font-black">${item.quantity}</td>
-                        <td class="p-4">
-                            <span class="px-2 py-1 rounded text-[10px] font-bold ${item.quantity < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}">
-                                ${item.quantity < 5 ? 'منخفض' : 'سليم'}
-                            </span>
+                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <i data-lucide="inbox" class="w-6 h-6 text-slate-300"></i>
+                                <span class="font-semibold text-xs">لا توجد بيانات مطابقة لخيارات البحث</span>
+                            </div>
                         </td>
                     </tr>
                 `;
-            });
-            document.getElementById('stat-total').innerText = total.toLocaleString();
-            document.getElementById('stat-low').innerText = low;
-            document.getElementById('stat-locs').innerText = locs.size;
-        });
+                lucide.createIcons();
+                document.getElementById('pagination-status').textContent = 'يعرض 0 من أصل 0 سجل';
+                document.getElementById('btn-prev').setAttribute('disabled', 'true');
+                document.getElementById('btn-next').setAttribute('disabled', 'true');
+                return;
+            }
 
-        function showToast() {
-            const t = document.getElementById('toast');
-            t.classList.remove('opacity-0', 'translate-y-10');
-            setTimeout(() => t.classList.add('opacity-0', 'translate-y-10'), 4000);
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, total);
+            const paginatedItems = filteredTableData.slice(startIdx, endIdx);
+
+            let html = '';
+            
+            if (activeInventorySubTab === 'stock') {
+                paginatedItems.forEach((item, index) => {
+                    const globalIdx = startIdx + index + 1;
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-3.5 text-xs text-slate-400 font-mono">${globalIdx.toLocaleString('ar-EG')}</td>
+                            <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
+                            <td class="px-6 py-3.5 text-right">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
+                                    <i data-lucide="map-pin" class="w-3 h-3 text-slate-400"></i>
+                                    ${item.locationId}
+                                </span>
+                            </td>
+                            <td class="px-6 py-3.5 text-left font-bold font-mono text-slate-900">${item.quantity.toLocaleString('ar-EG')}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                paginatedItems.forEach((item, index) => {
+                    const imgHtml = item.imageUrl 
+                        ? `<img src="${item.imageUrl}" class="w-10 h-10 object-cover rounded-lg bg-slate-100 shadow-sm" alt="صورة المنتج">`
+                        : `<div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400"><i data-lucide="shirt" class="w-5 h-5"></i></div>`;
+                    
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-3.5">${imgHtml}</td>
+                            <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
+                            <td class="px-6 py-3.5 text-right text-slate-800 font-bold">${item.productName || 'غير مسجل'}</td>
+                            <td class="px-6 py-3.5 text-left font-bold font-mono text-slate-900">${(item.systemQty || 0).toLocaleString('ar-EG')}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            tbody.innerHTML = html;
+            lucide.createIcons();
+
+            document.getElementById('pagination-status').textContent = `يعرض ${(startIdx + 1).toLocaleString('ar-EG')} إلى ${endIdx.toLocaleString('ar-EG')} من أصل ${total.toLocaleString('ar-EG')} سجل`;
+            
+            const prevBtn = document.getElementById('btn-prev');
+            const nextBtn = document.getElementById('btn-next');
+            
+            if (currentPage === 1) prevBtn.setAttribute('disabled', 'true');
+            else prevBtn.removeAttribute('disabled');
+
+            if (endIdx >= total) nextBtn.setAttribute('disabled', 'true');
+            else nextBtn.removeAttribute('disabled');
         }
 
-        showSection('dashboard');
+        function changePage(direction) {
+            currentPage += direction;
+            renderInventoryTable();
+        }
+
+        // ================= ORDER PICKER PROCESSOR =================
+        function renderOrderPicker() {
+            const container = document.getElementById('picker-orders-container');
+            if (!container) return;
+
+            // Filter pending orders
+            const pendingOrders = liveOrdersData.filter(o => o.status === 'pending');
+
+            if (pendingOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-16 text-center text-slate-400">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <i data-lucide="package-search" class="w-10 h-10 text-slate-300"></i>
+                            <p class="font-bold text-slate-700">لا توجد طلبات معلقة بانتظار التحضير</p>
+                            <p class="text-xs text-slate-400">ارفع ملف طلبات شوبيفاي اليومي من "مركز الرفع" للبدء في توجيه الموظفين للرفوف.</p>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            // Group orders by orderNumber
+            const grouped = {};
+            pendingOrders.forEach(item => {
+                if (!grouped[item.orderNumber]) {
+                    grouped[item.orderNumber] = [];
+                }
+                grouped[item.orderNumber].push(item);
+            });
+
+            let html = '';
+            
+            // Loop through each order group
+            Object.keys(grouped).forEach(orderNo => {
+                const items = grouped[orderNo];
+                const customer = items[0].customerName;
+                
+                let itemsHtml = '';
+                
+                items.forEach(item => {
+                    // Match with product catalog to get image
+                    const catalogItem = liveCatalogData.find(c => c.barcode === item.sku);
+                    const imgUrl = catalogItem ? catalogItem.imageUrl : '';
+                    
+                    const imgHtml = imgUrl 
+                        ? `<img src="${imgUrl}" class="w-12 h-12 object-cover rounded-xl bg-slate-50 shadow-sm" alt="صورة الصنف">`
+                        : `<div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="shirt" class="w-6 h-6"></i></div>`;
+
+                    // MATCH SHELVING LOCATION FOR THIS SKU IN THE WAREHOUSE
+                    const locationsWithStock = liveInventoryData.filter(inv => inv.barcode === item.sku && inv.quantity > 0);
+                    
+                    let locationLabel = '';
+                    if (locationsWithStock.length === 0) {
+                        locationLabel = `
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100">
+                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                                الصنف غير مسكن في الرفوف (رصيده 0)
+                            </span>
+                        `;
+                    } else {
+                        // Build visual tag of shelving shelves
+                        let tags = '';
+                        locationsWithStock.forEach(loc => {
+                            tags += `
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100 font-mono">
+                                    📍 الرف: ${loc.locationId} (الكمية: ${loc.quantity.toLocaleString('ar-EG')})
+                                </span>
+                            `;
+                        });
+                        locationLabel = `<div class="flex flex-wrap gap-1.5">${tags}</div>`;
+                    }
+
+                    itemsHtml += `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-xl transition">
+                            <div class="flex items-center gap-4">
+                                ${imgHtml}
+                                <div>
+                                    <h5 class="text-sm font-bold text-slate-800">${item.itemName || 'اسم صنف غير معروف'}</h5>
+                                    <p class="text-xs text-slate-400 font-mono mt-0.5">باركد: ${item.sku} | الكمية المطلوبة: <span class="font-bold text-slate-700 text-sm">${item.quantity.toLocaleString('ar-EG')}</span></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Location directions -->
+                            <div class="flex items-center justify-start sm:justify-end">
+                                ${locationLabel}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                        <!-- Order Card Header -->
+                        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <span class="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-500 uppercase tracking-wider">الطلب رقم:</span>
+                                <h4 class="text-lg font-black text-brand-deep inline-block ml-3 font-mono">${orderNo}</h4>
+                                <span class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-200/60 px-2.5 py-1 rounded-lg">
+                                    <i data-lucide="user" class="w-3 h-3 text-slate-400"></i>
+                                    العميل: ${customer}
+                                </span>
+                            </div>
+                            <button onclick="markOrderCompleted('${orderNo}')" class="bg-brand-deep hover:bg-brand-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shadow-brand-deep/10">
+                                <i data-lucide="check" class="w-4 h-4"></i>
+                                تم تحضير وتعبئة الطلب بالكامل
+                            </button>
+                        </div>
+                        
+                        <!-- Order Items list -->
+                        <div class="p-6 space-y-3">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        async function markOrderCompleted(orderNumber) {
+            if (!db) return;
+            
+            // Find all pending line items for this orderNumber
+            const orderItems = liveOrdersData.filter(o => o.orderNumber === orderNumber && o.status === 'pending');
+            if (orderItems.length === 0) return;
+
+            logToConsole('system', `جاري تحديث حالة الطلب رقم ${orderNumber} والخصم التلقائي من الرفوف...`);
+
+            try {
+                const batch = db.batch();
+                
+                // For each item in the order, deduct from inventory shelves
+                for (const item of orderItems) {
+                    let quantityNeeded = Number(item.quantity || 0);
+                    
+                    // Find all shelves with stock for this SKU
+                    let shelves = liveInventoryData.filter(inv => inv.barcode === item.sku && inv.quantity > 0);
+                    
+                    // Deduct sequentially from shelves
+                    for (let shelf of shelves) {
+                        if (quantityNeeded <= 0) break;
+                        
+                        const docId = `${item.sku}_${shelf.locationId}`;
+                        const ref = db.collection('warehouse_inventory').doc(docId);
+                        
+                        if (shelf.quantity >= quantityNeeded) {
+                            const newQty = shelf.quantity - quantityNeeded;
+                            batch.update(ref, { quantity: newQty });
+                            // Update local variable so subsequent logic sees it
+                            shelf.quantity = newQty;
+                            quantityNeeded = 0;
+                            logToConsole('success', `سيتم خصم من الرف ${shelf.locationId} الصنف ${item.sku} بمقدار ${item.quantity}`);
+                        } else {
+                            quantityNeeded -= shelf.quantity;
+                            batch.update(ref, { quantity: 0 });
+                            shelf.quantity = 0;
+                            logToConsole('success', `سيتم تصفير الرف ${shelf.locationId} للصنف ${item.sku} وخصم المتبقي من رف آخر`);
+                        }
+                    }
+
+                    if (quantityNeeded > 0) {
+                        logToConsole('error', `تنبيه: عجز في مخزون الرفوف للباركود ${item.sku} بمقدار ${quantityNeeded} قطع!`);
+                    }
+
+                    // Update order line item status
+                    const docId = `${orderNumber}_${item.sku}`;
+                    const ref = db.collection('shopify_orders').doc(docId);
+                    batch.update(ref, { status: 'completed' });
+                }
+
+                await batch.commit();
+                logToConsole('success', `تم خصم المخزن وحفظ الطلب ${orderNumber} كمكتمل بنجاح.`);
+                alert(`تم تأكيد تحضير الطلب ${orderNumber} بنجاح، وخصم البضائع تلقائياً من الرفوف.`);
+            } catch (err) {
+                console.error("Order completion update error:", err);
+                logToConsole('error', `فشل في إكمال الطلب ${orderNumber}: ${err.message}`);
+                alert("حدث خطأ أثناء إرسال إشارة إكمال الطلب والخصم من المستودع.");
+            }
+        }
+
+        // ================= LOGGER UTILS =================
+        function logToConsole(type, msg) {
+            const consoleEl = document.getElementById('upload-console');
+            if (!consoleEl) return;
+
+            const timeStr = new Date().toLocaleTimeString('ar-EG', { hour12: false });
+            let classColor = 'text-slate-300';
+            let prefix = '[نظام]';
+
+            if (type === 'success') {
+                classColor = 'text-emerald-400 font-medium';
+                prefix = '[نجاح]';
+            } else if (type === 'error') {
+                classColor = 'text-rose-400 font-semibold';
+                prefix = '[خطأ]';
+            }
+
+            const line = document.createElement('div');
+            line.className = classColor;
+            line.textContent = `[${timeStr}] ${prefix} ${msg}`;
+            
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('upload-console').innerHTML = '';
+            logToConsole('system', 'تم مسح سجل العمليات.');
+        }
+
+        // ================= TEMPLATE GENERATOR UTILS (SheetJS) =================
+        function downloadSampleTemplate(type) {
+            let data = [];
+            let fileName = '';
+
+            if (type === 'catalog') {
+                data = [
+                    { "Barcode": "8801097250041", "ProductName": "تيشرت TREE قطن أوفرسايز - أسود M", "SystemQty": 250, "ImageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300" },
+                    { "Barcode": "8801097250058", "ProductName": "تيشرت TREE قطن أوفرسايز - أسود L", "SystemQty": 400, "ImageUrl": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300" },
+                    { "Barcode": "8801097250065", "ProductName": "بنطال جينز كلاسيك TREE - كحلي 32", "SystemQty": 180, "ImageUrl": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=300" },
+                    { "Barcode": "8801097250072", "ProductName": "هودي شتوي مخمل TREE - زيتي XL", "SystemQty": 90, "ImageUrl": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=300" }
+                ];
+                fileName = 'TREE_Catalog_Template.xlsx';
+            } 
+            else if (type === 'shopify_images') {
+                data = [
+                    { "Variant Barcode": "8801097250041", "Image Src": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300", "Title": "تيشرت TREE أسود M" },
+                    { "Variant Barcode": "8801097250058", "Image Src": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300", "Title": "تيشرت TREE أسود L" },
+                    { "Variant Barcode": "8801097250065", "Image Src": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=300", "Title": "بنطال جينز كحلي 32" }
+                ];
+                fileName = 'Shopify_Images_Template.xlsx';
+            }
+            else if (type === 'locations') {
+                data = [
+                    { "id": "A-01-01" },
+                    { "id": "A-01-02" },
+                    { "id": "B-03-04" },
+                    { "id": "C-12-01" },
+                    { "id": "D-09-02" }
+                ];
+                fileName = 'Locations_Template.xlsx';
+            } 
+            else if (type === 'inventory') {
+                data = [
+                    { "Barcode": "8801097250041", "LocationId": "A-01-01", "Quantity": 150 },
+                    { "Barcode": "8801097250041", "LocationId": "A-01-02", "Quantity": 100 },
+                    { "Barcode": "8801097250058", "LocationId": "B-03-04", "Quantity": 400 },
+                    { "Barcode": "8801097250065", "LocationId": "C-12-01", "Quantity": 180 },
+                    { "Barcode": "8801097250072", "LocationId": "D-09-02", "Quantity": 90 }
+                ];
+                fileName = 'Inventory_Placement_Template.xlsx';
+            }
+            else if (type === 'shopify_orders') {
+                data = [
+                    { "Name": "#1001", "Lineitem sku": "8801097250041", "Lineitem name": "تيشرت TREE قطن أوفرسايز - أسود M", "Lineitem quantity": 2, "Shipping Name": "أحمد عبد الله" },
+                    { "Name": "#1001", "Lineitem sku": "8801097250065", "Lineitem name": "بنطال جينز كلاسيك TREE - كحلي 32", "Lineitem quantity": 1, "Shipping Name": "أحمد عبد الله" },
+                    { "Name": "#1002", "Lineitem sku": "8801097250058", "Lineitem name": "تيشرت TREE قطن أوفرسايز - أسود L", "Lineitem quantity": 3, "Shipping Name": "محمد الحريري" }
+                ];
+                fileName = 'Shopify_Orders_Template.xlsx';
+            }
+
+            try {
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.book_append_sheet(wb, ws, "Sheet1");
+                XLSX.writeFile(wb, fileName);
+                logToConsole('success', `تم إنشاء وتحميل النموذج التجريبي: ${fileName}`);
+            } catch (err) {
+                console.error("Template build failure:", err);
+                alert("حدث خطأ أثناء بناء وتحميل الملف التجريبي: " + err.message);
+            }
+        }
     </script>
 </body>
 </html>
