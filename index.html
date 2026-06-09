@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مستودع الشجرة TREE - نظام اللوجستيات المتكامل</title>
+    <title>مستودع TREE - نظام اللوجستيات المتكامل</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -54,7 +54,6 @@
         body {
             font-family: 'Tajawal', sans-serif;
         }
-        /* Custom scrollbar styling for a premium feel */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -108,6 +107,11 @@
                     <i data-lucide="package-check" class="w-5 h-5"></i>
                     تحضير طلبات شوبيفاي
                 </button>
+
+                <button onclick="switchTab('query')" id="tab-query" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30">
+                    <i data-lucide="scan-line" class="w-5 h-5"></i>
+                    استعلام الباركود الفوري
+                </button>
             </nav>
         </div>
 
@@ -147,7 +151,7 @@
             <!-- ================= DASHBOARD TAB ================= -->
             <section id="section-dashboard" class="space-y-6">
                 <!-- Welcome Banner -->
-                <div class="bg-gradient-to-r from-brand-deep to-brand-700 text-white rounded-2xl p-6 md:p-8 shadow-xl shadow-brand-deep/10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="bg-gradient-to-r from-brand-deep to-brand-700 text-white rounded-2xl p-6 shadow-xl shadow-brand-deep/10 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div class="space-y-2">
                         <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight">نظام لوجستيات TREE للملابس</h3>
                         <p class="text-brand-100 text-sm max-w-xl">
@@ -169,7 +173,7 @@
                 <!-- Stats Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Stat Card 1 -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
                         <div class="space-y-1">
                             <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">أصناف الكتالوج</span>
                             <h4 id="stat-catalog-count" class="text-3xl font-extrabold text-slate-800">0</h4>
@@ -181,7 +185,7 @@
                     </div>
 
                     <!-- Stat Card 2 -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
                         <div class="space-y-1">
                             <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">رفوف التخزين</span>
                             <h4 id="stat-locations-count" class="text-3xl font-extrabold text-slate-800">0</h4>
@@ -193,7 +197,7 @@
                     </div>
 
                     <!-- Stat Card 3 -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
                         <div class="space-y-1">
                             <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">إجمالي القطع المودعة</span>
                             <h4 id="stat-total-qty" class="text-3xl font-extrabold text-slate-800">0</h4>
@@ -205,7 +209,7 @@
                     </div>
 
                     <!-- Stat Card 4 -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
                         <div class="space-y-1">
                             <span class="text-xs text-slate-500 font-semibold tracking-wide uppercase">طلبات معلقة للتحضير</span>
                             <h4 id="stat-orders-pending-count" class="text-3xl font-extrabold text-slate-800">0</h4>
@@ -217,68 +221,73 @@
                     </div>
                 </div>
 
-                <!-- Setup Templates / Quick Action Card -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
-                    <div>
-                        <h4 class="text-lg font-bold text-slate-800">مساعد ملفات الأوراق المالية والنماذج</h4>
-                        <p class="text-sm text-slate-500">تحميل النماذج الخمسة الجاهزة بصيغة Excel لرفع كتالوج البضائع وصور وتفاصيل طلبات شوبيفاي والمخازن.</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                        <button onclick="downloadSampleTemplate('catalog')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
-                            <div class="bg-emerald-100 p-2 rounded-lg text-brand-700 mb-2">
-                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                            </div>
-                            <div>
+                <!-- Split Dashboard Panel: Action templates & Activity logs -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Setup templates helper (Left cols) -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-800">تحميل نماذج جداول البيانات</h4>
+                            <p class="text-sm text-slate-500">تحميل النماذج الخمسة الجاهزة بصيغة Excel لرفع كتالوج البضائع وصور وتفاصيل طلبات شوبيفاي والمخازن.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <button onclick="downloadSampleTemplate('catalog')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-right h-28">
+                                <div class="bg-emerald-100 p-1.5 rounded-lg text-brand-700 mb-1">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                </div>
                                 <span class="text-xs font-bold text-slate-700 block">1. كتالوج المنتجات</span>
-                                <span class="text-[9px] text-slate-400">Barcode, ProductName, SystemQty, ImageUrl</span>
-                            </div>
-                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
-                        </button>
+                                <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                            </button>
 
-                        <button onclick="downloadSampleTemplate('shopify_images')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
-                            <div class="bg-pink-100 p-2 rounded-lg text-pink-600 mb-2">
-                                <i data-lucide="image" class="w-4 h-4"></i>
-                            </div>
-                            <div>
+                            <button onclick="downloadSampleTemplate('shopify_images')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-right h-28">
+                                <div class="bg-pink-100 p-1.5 rounded-lg text-pink-600 mb-1">
+                                    <i data-lucide="image" class="w-4 h-4"></i>
+                                </div>
                                 <span class="text-xs font-bold text-slate-700 block">2. صور شوبيفاي</span>
-                                <span class="text-[9px] text-slate-400">Variant Barcode, Image Src, Title</span>
-                            </div>
-                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
-                        </button>
+                                <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                            </button>
 
-                        <button onclick="downloadSampleTemplate('locations')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
-                            <div class="bg-blue-100 p-2 rounded-lg text-blue-600 mb-2">
-                                <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            </div>
-                            <div>
+                            <button onclick="downloadSampleTemplate('locations')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-right h-28">
+                                <div class="bg-blue-100 p-1.5 rounded-lg text-blue-600 mb-1">
+                                    <i data-lucide="map-pin" class="w-4 h-4"></i>
+                                </div>
                                 <span class="text-xs font-bold text-slate-700 block">3. مواقع الرفوف</span>
-                                <span class="text-[9px] text-slate-400">id (معرف الرف)</span>
-                            </div>
-                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
-                        </button>
+                                <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                            </button>
 
-                        <button onclick="downloadSampleTemplate('inventory')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
-                            <div class="bg-purple-100 p-2 rounded-lg text-purple-600 mb-2">
-                                <i data-lucide="boxes" class="w-4 h-4"></i>
-                            </div>
-                            <div>
+                            <button onclick="downloadSampleTemplate('inventory')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-right h-28">
+                                <div class="bg-purple-100 p-1.5 rounded-lg text-purple-600 mb-1">
+                                    <i data-lucide="boxes" class="w-4 h-4"></i>
+                                </div>
                                 <span class="text-xs font-bold text-slate-700 block">4. تسكين المخزون</span>
-                                <span class="text-[9px] text-slate-400">Barcode, LocationId, Quantity</span>
-                            </div>
-                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
-                        </button>
+                                <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                            </button>
 
-                        <button onclick="downloadSampleTemplate('shopify_orders')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all text-right h-32">
-                            <div class="bg-amber-100 p-2 rounded-lg text-amber-600 mb-2">
-                                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-                            </div>
-                            <div>
+                            <button onclick="downloadSampleTemplate('shopify_orders')" class="flex flex-col items-start justify-between p-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition text-right h-28">
+                                <div class="bg-amber-100 p-1.5 rounded-lg text-amber-600 mb-1">
+                                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                                </div>
                                 <span class="text-xs font-bold text-slate-700 block">5. طلبات شوبيفاي</span>
-                                <span class="text-[9px] text-slate-400">Name, Lineitem sku, Lineitem name...</span>
+                                <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Live Activity logs panel (Right 1 col) -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                                    سجل العمليات الأخير (Activity Log)
+                                </h4>
+                                <span class="text-[10px] text-slate-400 font-semibold uppercase">مزامنة فورية</span>
                             </div>
-                            <div class="w-full flex justify-end text-slate-400"><i data-lucide="download" class="w-3.5 h-3.5"></i></div>
-                        </button>
+                            <!-- Logs stack -->
+                            <div id="dashboard-activity-logs" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                                <p class="text-xs text-slate-400 text-center py-6">جاري تحميل سجل الحركات المستودعية...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -498,6 +507,9 @@
                     <button onclick="switchInventorySubTab('catalog')" id="subtab-catalog" class="px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all">
                         كتالوج المنتجات والصور
                     </button>
+                    <button onclick="switchInventorySubTab('discrepancy')" id="subtab-discrepancy" class="px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all">
+                        كاشف فروقات الجرد
+                    </button>
                 </div>
 
                 <!-- Search and Live Metric Header -->
@@ -579,7 +591,10 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-bold text-slate-800">شاشة فرز وتحضير طلبات شوبيفاي الفورية</h3>
-                        <p class="text-sm text-slate-500">يقوم النظام تلقائياً بربط القطع المطلوبة في الطلبات بمواقع تخزينها الفيزيائية (الرفوف) لإرشاد عمال المخزن للتحضير السريع.</p>
+                        <p class="text-sm text-slate-500 flex items-center gap-1.5">
+                            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            مسار التحضير مرتب جغرافياً حسب الرفوف تلقائياً لتسريع الجمع وتقليل الحركة.
+                        </p>
                     </div>
                     <div class="bg-amber-50 text-amber-800 border border-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
                         <i data-lucide="package" class="w-4 h-4 animate-bounce"></i>
@@ -590,12 +605,36 @@
                 <!-- Live Orders Stack -->
                 <div id="picker-orders-container" class="space-y-6">
                     <!-- Dynamic Orders go here -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-16 text-center text-slate-400">
-                        <div class="flex flex-col items-center justify-center gap-3">
-                            <i data-lucide="package-search" class="w-10 h-10 text-slate-300"></i>
-                            <p class="font-bold text-slate-700">لا توجد طلبات معلقة بانتظار التحضير</p>
-                            <p class="text-xs text-slate-400">ارفع ملف طلبات شوبيفاي اليومي من "مركز الرفع" للبدء في توجيه الموظفين للرفوف.</p>
-                        </div>
+                </div>
+            </section>
+
+            <!-- ================= BARCODE QUERY TAB ================= -->
+            <section id="section-query" class="hidden space-y-6">
+                <!-- Welcome Banner -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-800">الاستعلام الفوري والسريع للقطع بالمستودع</h3>
+                    <p class="text-sm text-slate-500">امسح باركود أي قطعة بملابس TREE لمعرفة تفاصيلها ومواقع الرفوف المتواجدة بها فورياً.</p>
+                </div>
+
+                <!-- Main Query Input -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center gap-4">
+                    <div class="relative w-full flex-1">
+                        <i data-lucide="scan-line" class="w-5 h-5 absolute right-4 top-4 text-slate-400"></i>
+                        <input type="text" id="query-barcode-input" onkeyup="if(event.key === 'Enter') handleQuerySearch()" placeholder="امسح باركود قطعة الملابس باستخدام قارئ الباركود أو اكتبه هنا..." 
+                               class="w-full pr-12 pl-4 py-3.5 border-2 border-slate-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-brand-accent/20 focus:border-brand-accent rounded-2xl text-base font-medium transition">
+                    </div>
+                    <button onclick="handleQuerySearch()" class="bg-brand-deep hover:bg-brand-700 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg shadow-brand-deep/15 transition flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-center">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                        استعلم عن القطعة
+                    </button>
+                </div>
+
+                <!-- Results Output Card -->
+                <div id="query-result-container" class="bg-white border border-slate-200 rounded-2xl p-8 min-h-[300px] flex items-center justify-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center gap-3">
+                        <i data-lucide="barcode" class="w-12 h-12 text-slate-300"></i>
+                        <p class="font-bold text-slate-700">بانتظار المسح أو الإدخال...</p>
+                        <p class="text-xs text-slate-400">ضع المؤشر داخل مربع الإدخال وامسح القطعة لعرض بيانات الكتالوج والتسكين.</p>
                     </div>
                 </div>
             </section>
@@ -617,9 +656,7 @@
         // دالة تنظيف الباركود الموحدة (إزالة الحقول الفارغة والشرطات والبادئة TR)
         function cleanBarcode(rawBarcode) {
             if (!rawBarcode) return '';
-            // تنظيف الحروف الخاصة والشرطة البادئة كما هو مطلوب
             let cleaned = rawBarcode.toString().replace(/['"]/g, '').replace(/^-/, '').trim();
-            // إزالة بادئة "TR" أو "tr" التابعة للبراند إذا وجدت في البداية
             if (cleaned.toUpperCase().startsWith('TR')) {
                 cleaned = cleaned.substring(2);
             }
@@ -668,7 +705,8 @@
             inventory: null,
             catalog: null,
             locations: null,
-            shopify_orders: null
+            shopify_orders: null,
+            activityLogs: null
         };
 
         // DOM Initializations
@@ -688,6 +726,20 @@
                     month: 'long', 
                     day: 'numeric' 
                 }) + ' - ' + now.toLocaleTimeString('ar-EG', { hour12: false });
+            }
+        }
+
+        // ================= FIRESTORE ACTIVITY LOGGING =================
+        async function addActivityLog(action, details) {
+            if (!db) return;
+            try {
+                await db.collection('activity_logs').add({
+                    action: action,
+                    details: details,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Failed to write activity log:", e);
             }
         }
 
@@ -743,7 +795,7 @@
             }
 
             activeTab = tabId;
-            const sections = ['dashboard', 'upload', 'inventory', 'picker'];
+            const sections = ['dashboard', 'upload', 'inventory', 'picker', 'query'];
             
             sections.forEach(s => {
                 const sect = document.getElementById(`section-${s}`);
@@ -766,12 +818,18 @@
                 dashboard: 'لوحة التحكم واللوجستيات',
                 upload: 'بوابة رفع جداول المخازن وشوبيفاي',
                 inventory: 'المخازن والكتالوجات الحية',
-                picker: 'تحضير وفرز طلبات شوبيفاي'
+                picker: 'تحضير وفرز طلبات شوبيفاي',
+                query: 'استعلام الباركود السريع'
             };
             document.getElementById('current-section-title').textContent = titles[tabId];
 
             if (tabId === 'inventory') {
                 switchInventorySubTab(activeInventorySubTab);
+            } else if (tabId === 'query') {
+                setTimeout(() => {
+                    const input = document.getElementById('query-barcode-input');
+                    if (input) input.focus();
+                }, 100);
             }
         }
 
@@ -785,6 +843,7 @@
             if (unsubscribers.catalog) unsubscribers.catalog();
             if (unsubscribers.locations) unsubscribers.locations();
             if (unsubscribers.shopify_orders) unsubscribers.shopify_orders();
+            if (unsubscribers.activityLogs) unsubscribers.activityLogs();
 
             if (!db) return;
 
@@ -805,13 +864,10 @@
 
                 document.getElementById('stat-total-qty').textContent = totalUnits.toLocaleString('ar-EG');
                 
-                if (activeInventorySubTab === 'stock') {
-                    document.getElementById('inventory-total-qty').textContent = totalUnits.toLocaleString('ar-EG');
-                    document.getElementById('inventory-total-records').textContent = liveInventoryData.length.toLocaleString('ar-EG');
-                    filterInventory();
+                if (activeInventorySubTab === 'stock' || activeInventorySubTab === 'discrepancy') {
+                    switchInventorySubTab(activeInventorySubTab); // refresh table
                 }
                 
-                // Refresh Order Picker because locations/quantities might have changed
                 renderOrderPicker();
             }, err => {
                 console.error("Live inventory snapshot error:", err);
@@ -825,11 +881,8 @@
                 });
                 document.getElementById('stat-catalog-count').textContent = liveCatalogData.length.toLocaleString('ar-EG');
                 
-                if (activeInventorySubTab === 'catalog') {
-                    let totalCatalogQty = liveCatalogData.reduce((sum, item) => sum + Number(item.systemQty || 0), 0);
-                    document.getElementById('inventory-total-qty').textContent = totalCatalogQty.toLocaleString('ar-EG');
-                    document.getElementById('inventory-total-records').textContent = liveCatalogData.length.toLocaleString('ar-EG');
-                    filterInventory();
+                if (activeInventorySubTab === 'catalog' || activeInventorySubTab === 'discrepancy') {
+                    switchInventorySubTab(activeInventorySubTab); // refresh table
                 }
             }, err => {
                 console.error("Catalog snapshot error:", err);
@@ -853,9 +906,7 @@
                     liveOrdersData.push(doc.data());
                 });
 
-                // Calculate pending orders
                 const pendingOrders = liveOrdersData.filter(o => o.status === 'pending');
-                // Unique orders count
                 const uniquePendingOrders = [...new Set(pendingOrders.map(o => o.orderNumber))];
                 document.getElementById('stat-orders-pending-count').textContent = uniquePendingOrders.length.toLocaleString('ar-EG');
 
@@ -863,6 +914,54 @@
             }, err => {
                 console.error("Shopify orders snapshot error:", err);
             });
+
+            // 5. Activity Logs Realtime Stream
+            unsubscribers.activityLogs = db.collection('activity_logs')
+                .orderBy('timestamp', 'desc')
+                .limit(10)
+                .onSnapshot(snapshot => {
+                    const container = document.getElementById('dashboard-activity-logs');
+                    if (!container) return;
+                    
+                    let html = '';
+                    if (snapshot.size === 0) {
+                        html = '<p class="text-xs text-slate-400 text-center py-6">لا توجد عمليات مسجلة بعد.</p>';
+                    } else {
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            const timeStr = data.timestamp 
+                                ? new Date(data.timestamp.seconds * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+                                : new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                            
+                            let icon = 'info';
+                            let badgeClass = 'bg-slate-100 text-slate-700';
+                            if (data.action.includes('رفع') || data.action.includes('كتالوج') || data.action.includes('ملف') || data.action.includes('تحديث')) {
+                                icon = 'upload-cloud';
+                                badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+                            } else if (data.action.includes('تحضير') || data.action.includes('خصم') || data.action.includes('طلب') || data.action.includes('تعبئة')) {
+                                icon = 'package-check';
+                                badgeClass = 'bg-amber-50 text-amber-700 border border-amber-100';
+                            }
+                            
+                            html += `
+                                <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100/70 transition">
+                                    <div class="p-2 rounded-lg ${badgeClass}">
+                                        <i data-lucide="${icon}" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-bold text-slate-700">${data.action}</p>
+                                        <p class="text-[10px] text-slate-500 mt-0.5 truncate">${data.details}</p>
+                                    </div>
+                                    <span class="text-[9px] text-slate-400 font-medium font-mono">${timeStr}</span>
+                                </div>
+                            `;
+                        });
+                    }
+                    container.innerHTML = html;
+                    lucide.createIcons();
+                }, err => {
+                    console.error("Activity logs snapshot error:", err);
+                });
         }
 
         // ================= SHEETJS PARSING & DRAG-DROP =================
@@ -1097,7 +1196,6 @@
                         batch.set(ref, item, { merge: true });
                     } 
                     else if (type === 'shopify_images') {
-                        // Merging image source into ProductsCatalog
                         const ref = db.collection('ProductsCatalog').doc(item.barcode);
                         batch.set(ref, {
                             imageUrl: item.imageUrl
@@ -1109,7 +1207,6 @@
                     } 
                     else if (type === 'inventory') {
                         const cleanBarcodeVal = cleanBarcode(item.barcode);
-                        // Document ID MUST be ${barcode}_${locationId}
                         const docId = `${cleanBarcodeVal}_${item.locationId}`;
                         const ref = db.collection('warehouse_inventory').doc(docId);
                         batch.set(ref, {
@@ -1119,7 +1216,6 @@
                         });
                     }
                     else if (type === 'shopify_orders') {
-                        // Shopify Orders Document ID: `${orderNumber}_${sku}`
                         const docId = `${item.orderNumber}_${item.sku}`;
                         const ref = db.collection('shopify_orders').doc(docId);
                         batch.set(ref, {
@@ -1156,6 +1252,16 @@
                     }
                 }
 
+                // Add activity log to Firestore
+                const logActions = {
+                    catalog: "رفع كتالوج المنتجات",
+                    shopify_images: "مزامنة صور شوبيفاي",
+                    locations: "تحديث مواقع الرفوف",
+                    inventory: "تسكين المخزون الفعلي",
+                    shopify_orders: "استيراد طلبات شوبيفاي جديدة"
+                };
+                await addActivityLog(logActions[type], `تم مزامنة ورفع ملف يحتوي على عدد ${processed} سجل بنجاح.`);
+
                 progressStatus.textContent = "مكتمل!";
                 logToConsole('success', `تمت المزامنة بنجاح! تم رفع ${processed}/${totalRecords} سجل إلى Firestore.`);
                 alert(`اكتمل رفع ملف ${type} بنجاح! تم مزامنة ${processed} سجل.`);
@@ -1172,6 +1278,14 @@
                 isUploading[type] = false;
                 disableFormButtons(type, false);
             }
+        }
+
+        function getTargetCollection(type) {
+            if (type === 'catalog') return 'ProductsCatalog';
+            if (type === 'shopify_images') return 'ProductsCatalog';
+            if (type === 'locations') return 'warehouse_locations';
+            if (type === 'inventory') return 'warehouse_inventory';
+            return 'shopify_orders';
         }
 
         function disableFormButtons(type, disable) {
@@ -1192,27 +1306,65 @@
             
             const subtabStock = document.getElementById('subtab-stock');
             const subtabCatalog = document.getElementById('subtab-catalog');
+            const subtabDiscrepancy = document.getElementById('subtab-discrepancy');
             const subTitle = document.getElementById('inventory-sub-title');
             
+            // Toggle active classes
+            [subtabStock, subtabCatalog, subtabDiscrepancy].forEach(tab => {
+                if (tab) {
+                    tab.className = "px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all";
+                }
+            });
+
             if (subTabId === 'stock') {
                 subtabStock.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-brand-accent text-brand-deep transition-all";
-                subtabCatalog.className = "px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all";
                 subTitle.textContent = "تفاصيل الأصناف والتسكين بالمواقع";
                 
                 let totalStockQty = liveInventoryData.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
                 document.getElementById('inventory-total-qty').textContent = totalStockQty.toLocaleString('ar-EG');
                 document.getElementById('inventory-total-records').textContent = liveInventoryData.length.toLocaleString('ar-EG');
-            } else {
+            } 
+            else if (subTabId === 'catalog') {
                 subtabCatalog.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-brand-accent text-brand-deep transition-all";
-                subtabStock.className = "px-5 py-2.5 font-bold text-sm text-slate-500 hover:text-brand-deep transition-all";
                 subTitle.textContent = "كتالوج منتجات الملبوسات والصور المزامنة";
                 
                 let totalCatalogQty = liveCatalogData.reduce((sum, item) => sum + Number(item.systemQty || 0), 0);
                 document.getElementById('inventory-total-qty').textContent = totalCatalogQty.toLocaleString('ar-EG');
                 document.getElementById('inventory-total-records').textContent = liveCatalogData.length.toLocaleString('ar-EG');
             }
+            else if (subTabId === 'discrepancy') {
+                subtabDiscrepancy.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-brand-accent text-brand-deep transition-all";
+                subTitle.textContent = "كاشف فروقات ومطابقة الجرد الفيزيائي والنظامي";
+                
+                // Discrepancy metric counts
+                let discrepantItems = getDiscrepantItems();
+                document.getElementById('inventory-total-qty').textContent = discrepantItems.length.toLocaleString('ar-EG');
+                document.getElementById('inventory-total-records').textContent = discrepantItems.length.toLocaleString('ar-EG');
+            }
 
             filterInventory();
+        }
+
+        // Helper to compile discrepant items
+        function getDiscrepantItems() {
+            const discrepant = [];
+            liveCatalogData.forEach(item => {
+                const stockRecords = liveInventoryData.filter(inv => inv.barcode === item.barcode);
+                const shelfQty = stockRecords.reduce((sum, rec) => sum + rec.quantity, 0);
+                const diff = shelfQty - Number(item.systemQty || 0);
+                
+                if (diff !== 0) {
+                    discrepant.push({
+                        barcode: item.barcode,
+                        productName: item.productName || 'غير مسجل',
+                        imageUrl: item.imageUrl || '',
+                        systemQty: Number(item.systemQty || 0),
+                        shelfQty: shelfQty,
+                        diff: diff
+                    });
+                }
+            });
+            return discrepant;
         }
 
         function filterInventory() {
@@ -1227,13 +1379,25 @@
                         item.locationId.toLowerCase().includes(query)
                     );
                 }
-            } else {
+            } 
+            else if (activeInventorySubTab === 'catalog') {
                 if (!query) {
                     filteredTableData = [...liveCatalogData];
                 } else {
                     filteredTableData = liveCatalogData.filter(item => 
                         item.barcode.toLowerCase().includes(query) || 
                         (item.productName && item.productName.toLowerCase().includes(query))
+                    );
+                }
+            }
+            else if (activeInventorySubTab === 'discrepancy') {
+                const discrepancies = getDiscrepantItems();
+                if (!query) {
+                    filteredTableData = discrepancies;
+                } else {
+                    filteredTableData = discrepancies.filter(item => 
+                        item.barcode.toLowerCase().includes(query) || 
+                        item.productName.toLowerCase().includes(query)
                     );
                 }
             }
@@ -1284,7 +1448,8 @@
                         <th class="px-6 py-4 text-left">الكمية المودعة فعلياً</th>
                     </tr>
                 `;
-            } else {
+            } 
+            else if (activeInventorySubTab === 'catalog') {
                 thead.innerHTML = `
                     <tr class="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                         <th class="px-6 py-4">الصورة</th>
@@ -1294,14 +1459,30 @@
                     </tr>
                 `;
             }
+            else if (activeInventorySubTab === 'discrepancy') {
+                thead.innerHTML = `
+                    <tr class="bg-slate-50/70 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4">الصورة</th>
+                        <th class="px-6 py-4">الباركود</th>
+                        <th class="px-6 py-4 text-right">اسم الموديل والمنتج</th>
+                        <th class="px-6 py-4 text-center">الكمية النظامية</th>
+                        <th class="px-6 py-4 text-center">الكمية الفعلية بالرفوف</th>
+                        <th class="px-6 py-4 text-left">الفارق الجردي</th>
+                    </tr>
+                `;
+            }
 
             if (total === 0) {
+                let emptyMsg = "لا توجد بيانات مطابقة لخيارات البحث";
+                if (activeInventorySubTab === 'discrepancy') {
+                    emptyMsg = "🎉 رائِع! جميع الكميات الفعلية بالرفوف متطابقة تماماً مع الكتالوج النظامي.";
+                }
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                        <td colspan="${activeInventorySubTab === 'discrepancy' ? 6 : 4}" class="px-6 py-12 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center gap-2">
                                 <i data-lucide="inbox" class="w-6 h-6 text-slate-300"></i>
-                                <span class="font-semibold text-xs">لا توجد بيانات مطابقة لخيارات البحث</span>
+                                <span class="font-semibold text-xs">${emptyMsg}</span>
                             </div>
                         </td>
                     </tr>
@@ -1336,7 +1517,8 @@
                         </tr>
                     `;
                 });
-            } else {
+            } 
+            else if (activeInventorySubTab === 'catalog') {
                 paginatedItems.forEach((item, index) => {
                     const imgHtml = item.imageUrl 
                         ? `<img src="${item.imageUrl}" class="w-10 h-10 object-cover rounded-lg bg-slate-100 shadow-sm" alt="صورة المنتج">`
@@ -1348,6 +1530,33 @@
                             <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
                             <td class="px-6 py-3.5 text-right text-slate-800 font-bold">${item.productName || 'غير مسجل'}</td>
                             <td class="px-6 py-3.5 text-left font-bold font-mono text-slate-900">${(item.systemQty || 0).toLocaleString('ar-EG')}</td>
+                        </tr>
+                    `;
+                });
+            }
+            else if (activeInventorySubTab === 'discrepancy') {
+                paginatedItems.forEach((item, index) => {
+                    const imgHtml = item.imageUrl 
+                        ? `<img src="${item.imageUrl}" class="w-10 h-10 object-cover rounded-lg bg-slate-100 shadow-sm" alt="صورة المنتج">`
+                        : `<div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400"><i data-lucide="shirt" class="w-5 h-5"></i></div>`;
+                    
+                    const diffClass = item.diff > 0 
+                        ? 'bg-blue-50 text-blue-700 border-blue-100' 
+                        : 'bg-rose-50 text-rose-700 border-rose-100';
+                    const diffPrefix = item.diff > 0 ? '+' : '';
+
+                    html += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-3.5">${imgHtml}</td>
+                            <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
+                            <td class="px-6 py-3.5 text-right text-slate-800 font-bold">${item.productName}</td>
+                            <td class="px-6 py-3.5 text-center font-bold font-mono">${item.systemQty.toLocaleString('ar-EG')}</td>
+                            <td class="px-6 py-3.5 text-center font-bold font-mono">${item.shelfQty.toLocaleString('ar-EG')}</td>
+                            <td class="px-6 py-3.5 text-left font-bold font-mono">
+                                <span class="inline-flex px-2 py-0.5 rounded border ${diffClass}">
+                                    ${diffPrefix}${item.diff.toLocaleString('ar-EG')}
+                                </span>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1378,7 +1587,6 @@
             const container = document.getElementById('picker-orders-container');
             if (!container) return;
 
-            // Filter pending orders
             const pendingOrders = liveOrdersData.filter(o => o.status === 'pending');
 
             if (pendingOrders.length === 0) {
@@ -1395,7 +1603,6 @@
                 return;
             }
 
-            // Group orders by orderNumber
             const grouped = {};
             pendingOrders.forEach(item => {
                 if (!grouped[item.orderNumber]) {
@@ -1406,15 +1613,24 @@
 
             let html = '';
             
-            // Loop through each order group
             Object.keys(grouped).forEach(orderNo => {
                 const items = grouped[orderNo];
                 const customer = items[0].customerName;
                 
+                // OPTIMIZE PICKING PATH: Sort items inside the order based on their physical shelf locations
+                items.sort((a, b) => {
+                    const locsA = liveInventoryData.filter(inv => inv.barcode === a.sku && inv.quantity > 0);
+                    const locA = locsA.length > 0 ? locsA[0].locationId : 'ZZZZ';
+                    
+                    const locsB = liveInventoryData.filter(inv => inv.barcode === b.sku && inv.quantity > 0);
+                    const locB = locsB.length > 0 ? locsB[0].locationId : 'ZZZZ';
+                    
+                    return locA.localeCompare(locB);
+                });
+
                 let itemsHtml = '';
                 
                 items.forEach(item => {
-                    // Match with product catalog to get image
                     const catalogItem = liveCatalogData.find(c => c.barcode === item.sku);
                     const imgUrl = catalogItem ? catalogItem.imageUrl : '';
                     
@@ -1422,7 +1638,6 @@
                         ? `<img src="${imgUrl}" class="w-12 h-12 object-cover rounded-xl bg-slate-50 shadow-sm" alt="صورة الصنف">`
                         : `<div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400"><i data-lucide="shirt" class="w-6 h-6"></i></div>`;
 
-                    // MATCH SHELVING LOCATION FOR THIS SKU IN THE WAREHOUSE
                     const locationsWithStock = liveInventoryData.filter(inv => inv.barcode === item.sku && inv.quantity > 0);
                     
                     let locationLabel = '';
@@ -1434,7 +1649,6 @@
                             </span>
                         `;
                     } else {
-                        // Build visual tag of shelving shelves
                         let tags = '';
                         locationsWithStock.forEach(loc => {
                             tags += `
@@ -1456,7 +1670,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Location directions -->
                             <div class="flex items-center justify-start sm:justify-end">
                                 ${locationLabel}
                             </div>
@@ -1468,12 +1681,16 @@
                     <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                         <!-- Order Card Header -->
                         <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
+                            <div class="flex flex-wrap items-center gap-3">
                                 <span class="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-500 uppercase tracking-wider">الطلب رقم:</span>
-                                <h4 class="text-lg font-black text-brand-deep inline-block ml-3 font-mono">${orderNo}</h4>
+                                <h4 class="text-lg font-black text-brand-deep font-mono">${orderNo}</h4>
                                 <span class="inline-flex items-center gap-1 text-xs font-bold text-slate-700 bg-slate-200/60 px-2.5 py-1 rounded-lg">
                                     <i data-lucide="user" class="w-3 h-3 text-slate-400"></i>
                                     العميل: ${customer}
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg">
+                                    <i data-lucide="navigation" class="w-3 h-3 text-brand-accent"></i>
+                                    مسار تحضير مرتب جغرافيًا
                                 </span>
                             </div>
                             <button onclick="markOrderCompleted('${orderNo}')" class="bg-brand-deep hover:bg-brand-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shadow-brand-deep/10">
@@ -1546,6 +1763,10 @@
                 }
 
                 await batch.commit();
+                
+                // Log activity to Firestore
+                await addActivityLog("تعبئة طلب شوبيفاي", `تم تحضير الطلب #${orderNumber} بالكامل وخصم القطع من الرفوف.`);
+
                 logToConsole('success', `تم خصم المخزن وحفظ الطلب ${orderNumber} كمكتمل بنجاح.`);
                 alert(`تم تأكيد تحضير الطلب ${orderNumber} بنجاح، وخصم البضائع تلقائياً من الرفوف.`);
             } catch (err) {
@@ -1553,6 +1774,120 @@
                 logToConsole('error', `فشل في إكمال الطلب ${orderNumber}: ${err.message}`);
                 alert("حدث خطأ أثناء إرسال إشارة إكمال الطلب والخصم من المستودع.");
             }
+        }
+
+        // ================= BARCODE QUICK QUERY ENGINE =================
+        function handleQuerySearch() {
+            const inputVal = document.getElementById('query-barcode-input').value.trim();
+            if (!inputVal) return;
+            
+            const barcode = cleanBarcode(inputVal);
+            document.getElementById('query-barcode-input').value = barcode; // Show cleaned in input
+            
+            const resultContainer = document.getElementById('query-result-container');
+            
+            // Search in catalog
+            const product = liveCatalogData.find(c => c.barcode === barcode);
+            // Search in shelves
+            const shelves = liveInventoryData.filter(inv => inv.barcode === barcode);
+            const totalOnShelves = shelves.reduce((sum, item) => sum + item.quantity, 0);
+
+            if (!product && shelves.length === 0) {
+                resultContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center gap-3 text-rose-500">
+                        <i data-lucide="x-circle" class="w-12 h-12 text-rose-400 animate-bounce"></i>
+                        <p class="font-bold text-slate-800">لم يتم العثور على الصنف بالباركود: ${barcode}</p>
+                        <p class="text-xs text-slate-400">القطعة غير مسجلة في الكتالوج أو مسكنة بالرفوف.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            const name = product ? product.productName : 'اسم صنف غير مسجل بالكتالوج ⚠️';
+            const imgUrl = product ? product.imageUrl : '';
+            const systemQty = product ? Number(product.systemQty) : 0;
+
+            const imgHtml = imgUrl 
+                ? `<img src="${imgUrl}" class="w-40 h-40 object-cover rounded-2xl bg-slate-50 border border-slate-200 shadow-md" alt="صورة الموديل">`
+                : `<div class="w-40 h-40 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-200"><i data-lucide="shirt" class="w-16 h-16"></i></div>`;
+
+            let shelvesListHtml = '';
+            if (shelves.length === 0) {
+                shelvesListHtml = `
+                    <div class="p-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl flex items-center gap-2 text-xs font-bold">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        المنتج غير مسكن في الرفوف حالياً!
+                    </div>
+                `;
+            } else {
+                let itemsList = '';
+                shelves.forEach(shelf => {
+                    itemsList += `
+                        <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i>
+                                الرف / الموقع: ${shelf.locationId}
+                            </span>
+                            <span class="text-xs font-extrabold text-brand-deep font-mono">${shelf.quantity.toLocaleString('ar-EG')} قطعة</span>
+                        </div>
+                    `;
+                });
+                shelvesListHtml = `<div class="space-y-2">${itemsList}</div>`;
+            }
+
+            const discrepancy = totalOnShelves - systemQty;
+            let discrepancyBadge = '';
+            if (discrepancy === 0) {
+                discrepancyBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full">مطابق الجرد</span>`;
+            } else {
+                const color = discrepancy > 0 ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-rose-50 text-rose-700 border-rose-100';
+                discrepancyBadge = `<span class="${color} border text-[10px] font-bold px-2 py-0.5 rounded-full">فارق: ${discrepancy > 0 ? '+' : ''}${discrepancy} قطعة</span>`;
+            }
+
+            resultContainer.innerHTML = `
+                <div class="w-full flex flex-col md:flex-row gap-8 text-right">
+                    <!-- Right thumbnail image -->
+                    <div class="flex justify-center md:justify-start">
+                        ${imgHtml}
+                    </div>
+
+                    <!-- Left details -->
+                    <div class="flex-1 space-y-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <span class="bg-brand-50 text-brand-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-brand-100">تفاصيل الصنف</span>
+                                ${discrepancyBadge}
+                            </div>
+                            <h4 class="text-lg font-bold text-slate-800">${name}</h4>
+                            <p class="text-xs text-slate-400 font-mono">الباركود: ${barcode}</p>
+                        </div>
+
+                        <!-- Quantities map -->
+                        <div class="grid grid-cols-2 gap-4 border-y border-slate-100 py-3">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">الرصيد النظامي (الكتالوج)</span>
+                                <span class="text-lg font-black font-mono text-slate-700">${systemQty.toLocaleString('ar-EG')} قطعة</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">الرصيد الفعلي (الرفوف)</span>
+                                <span class="text-lg font-black font-mono text-brand-deep">${totalOnShelves.toLocaleString('ar-EG')} قطعة</span>
+                            </div>
+                        </div>
+
+                        <!-- Shelf locations -->
+                        <div class="space-y-2">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase block">أماكن الحفظ والتسكين الفعلي:</span>
+                            ${shelvesListHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            
+            // Auto focus and clear input for next scan
+            document.getElementById('query-barcode-input').value = '';
+            document.getElementById('query-barcode-input').focus();
         }
 
         // ================= LOGGER UTILS =================
@@ -1601,9 +1936,9 @@
             } 
             else if (type === 'shopify_images') {
                 data = [
-                    { "Variant Barcode": "8801097250041", "Image Src": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300", "Title": "تيشرت TREE أسود M" },
-                    { "Variant Barcode": "8801097250058", "Image Src": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300", "Title": "تيشرت TREE أسود L" },
-                    { "Variant Barcode": "8801097250065", "Image Src": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=300", "Title": "بنطال جينز كحلي 32" }
+                    { "Variant Barcode": "TR8801097250041", "Image Src": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300", "Title": "تيشرت TREE أسود M" },
+                    { "Variant Barcode": "TR8801097250058", "Image Src": "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300", "Title": "تيشرت TREE أسود L" },
+                    { "Variant Barcode": "TR8801097250065", "Image Src": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=300", "Title": "بنطال جينز كحلي 32" }
                 ];
                 fileName = 'Shopify_Images_Template.xlsx';
             }
@@ -1619,7 +1954,7 @@
             } 
             else if (type === 'inventory') {
                 data = [
-                    { "Barcode": "8801097250041", "LocationId": "A-01-01", "Quantity": 150 },
+                    { "Barcode": "TR8801097250041", "LocationId": "A-01-01", "Quantity": 150 },
                     { "Barcode": "8801097250041", "LocationId": "A-01-02", "Quantity": 100 },
                     { "Barcode": "8801097250058", "LocationId": "B-03-04", "Quantity": 400 },
                     { "Barcode": "8801097250065", "LocationId": "C-12-01", "Quantity": 180 },
@@ -1629,7 +1964,7 @@
             }
             else if (type === 'shopify_orders') {
                 data = [
-                    { "Name": "#1001", "Lineitem sku": "8801097250041", "Lineitem name": "تيشرت TREE قطن أوفرسايز - أسود M", "Lineitem quantity": 2, "Shipping Name": "أحمد عبد الله" },
+                    { "Name": "#1001", "Lineitem sku": "TR8801097250041", "Lineitem name": "تيشرت TREE قطن أوفرسايز - أسود M", "Lineitem quantity": 2, "Shipping Name": "أحمد عبد الله" },
                     { "Name": "#1001", "Lineitem sku": "8801097250065", "Lineitem name": "بنطال جينز كلاسيك TREE - كحلي 32", "Lineitem quantity": 1, "Shipping Name": "أحمد عبد الله" },
                     { "Name": "#1002", "Lineitem sku": "8801097250058", "Lineitem name": "تيشرت TREE قطن أوفرسايز - أسود L", "Lineitem quantity": 3, "Shipping Name": "محمد الحريري" }
                 ];
