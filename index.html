@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مستودع الشجرة TREE - نظام اللوجستيات المتكامل</title>
+    <title>مستودع  TREE - نظام اللوجستيات المتكامل</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,6 +45,9 @@
 
     <!-- SheetJS (xlsx.full.min.js) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Firebase App & Firestore SDKs (v10.8.0 compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -241,6 +244,37 @@
                         </div>
                         <div class="bg-amber-50 p-4 rounded-xl text-amber-600">
                             <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Chart 1: Stock Distribution by Zone -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div class="border-b border-slate-100 pb-3 mb-4">
+                            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-brand-accent"></i>
+                                توزيع رصيد المخزون على مناطق المستودع (Zones)
+                            </h4>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">مقسم تلقائياً بناءً على الحرف الأول للرف</p>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="zoneDistributionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Top Stocked clothing items -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div class="border-b border-slate-100 pb-3 mb-4">
+                            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-500"></i>
+                                أعلى 5 موديلات ملابس متوفرة في المستودع
+                            </h4>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">الأصناف الأكثر وفرة بالعدد الفعلي بالرفوف</p>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="topStockChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -700,6 +734,8 @@
         let db = null;
         let activeTab = 'dashboard';
         let activeInventorySubTab = 'stock';
+        let zoneChart = null;
+        let topStockChart = null;
         let parsedFiles = {
             catalog: null,
             shopify_images: null,
@@ -915,6 +951,7 @@
                 }
                 
                 renderOrderPicker();
+                updateDashboardCharts();
             }, err => {
                 console.error("Live inventory snapshot error:", err);
             });
@@ -930,6 +967,7 @@
                 if (activeInventorySubTab === 'catalog' || activeInventorySubTab === 'discrepancy') {
                     switchInventorySubTab(activeInventorySubTab); // refresh table
                 }
+                updateDashboardCharts();
             }, err => {
                 console.error("Catalog snapshot error:", err);
             });
@@ -2105,6 +2143,136 @@
                     card.classList.add('flex');
                 }
             });
+        }
+
+        // ================= DASHBOARD ANALYTICS CHARTS =================
+        function updateDashboardCharts() {
+            if (typeof Chart === 'undefined') return;
+
+            // 1. Zone Stock Distribution
+            const zoneCounts = {};
+            liveInventoryData.forEach(item => {
+                const zone = item.locationId ? item.locationId.charAt(0).toUpperCase() : 'غير محدد';
+                zoneCounts[zone] = (zoneCounts[zone] || 0) + Number(item.quantity || 0);
+            });
+
+            const zoneLabels = Object.keys(zoneCounts).map(z => `المنطقة ${z}`);
+            const zoneData = Object.values(zoneCounts);
+
+            // 2. Top 5 Most Stocked SKUs
+            const skuQty = {};
+            liveInventoryData.forEach(item => {
+                skuQty[item.barcode] = (skuQty[item.barcode] || 0) + Number(item.quantity || 0);
+            });
+            
+            const topSKUs = Object.keys(skuQty)
+                .map(sku => {
+                    const catalogItem = liveCatalogData.find(c => c.barcode === sku);
+                    const name = catalogItem ? (catalogItem.productName || sku) : sku;
+                    const shortName = name.length > 20 ? name.substring(0, 20) + '...' : name;
+                    return {
+                        label: shortName,
+                        qty: skuQty[sku]
+                    };
+                })
+                .sort((a, b) => b.qty - a.qty)
+                .slice(0, 5);
+
+            const topLabels = topSKUs.map(x => x.label);
+            const topData = topSKUs.map(x => x.qty);
+
+            // Render / Update Zone Distribution Chart
+            const ctxZone = document.getElementById('zoneDistributionChart');
+            if (ctxZone) {
+                if (zoneChart) {
+                    zoneChart.data.labels = zoneLabels;
+                    zoneChart.data.datasets[0].data = zoneData;
+                    zoneChart.update();
+                } else {
+                    zoneChart = new Chart(ctxZone, {
+                        type: 'doughnut',
+                        data: {
+                            labels: zoneLabels,
+                            datasets: [{
+                                data: zoneData,
+                                backgroundColor: [
+                                    'rgba(16, 185, 129, 0.75)', // emerald
+                                    'rgba(59, 130, 246, 0.75)', // blue
+                                    'rgba(245, 158, 11, 0.75)', // amber
+                                    'rgba(139, 92, 246, 0.75)', // violet
+                                    'rgba(236, 72, 153, 0.75)', // pink
+                                    'rgba(100, 116, 139, 0.75)' // slate
+                                ],
+                                borderColor: [
+                                    '#10b981',
+                                    '#3b82f6',
+                                    '#f59e0b',
+                                    '#8b5cf6',
+                                    '#ec4899',
+                                    '#64748b'
+                                ],
+                                borderWidth: 1.5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        boxWidth: 12,
+                                        font: { family: 'Tajawal', size: 11 }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Render / Update Top Stock Chart
+            const ctxTop = document.getElementById('topStockChart');
+            if (ctxTop) {
+                if (topStockChart) {
+                    topStockChart.data.labels = topLabels;
+                    topStockChart.data.datasets[0].data = topData;
+                    topStockChart.update();
+                } else {
+                    topStockChart = new Chart(ctxTop, {
+                        type: 'bar',
+                        data: {
+                            labels: topLabels,
+                            datasets: [{
+                                label: 'عدد القطع بالرفوف',
+                                data: topData,
+                                backgroundColor: 'rgba(6, 78, 59, 0.75)', // brand-deep
+                                borderColor: '#064e3b',
+                                borderWidth: 1.5,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y', // horizontal bar chart
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { font: { family: 'Tajawal', size: 10 } }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: { font: { family: 'Tajawal', size: 10 } }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+            }
         }
     </script>
 </body>
