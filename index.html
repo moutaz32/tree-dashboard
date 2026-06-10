@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مستودع TREE - نظام اللوجستيات المتكامل</title>
+    <title>مستودع الشجرة TREE - نظام اللوجستيات المتكامل</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -72,8 +72,8 @@
 </head>
 <body class="h-full flex flex-col md:flex-row text-slate-800 antialiased overflow-hidden">
 
-    <!-- LEFT SIDEBAR (RIGHT in RTL) -->
-    <aside class="w-full md:w-64 bg-brand-deep text-white flex flex-col justify-between flex-shrink-0 border-l border-brand-900/30">
+    <!-- LEFT SIDEBAR (RIGHT in RTL) - hidden on mobile, visible on md and up -->
+    <aside class="hidden md:flex w-full md:w-64 bg-brand-deep text-white flex-col justify-between flex-shrink-0 border-l border-brand-900/30">
         <div>
             <!-- Header Brand -->
             <div class="px-6 py-5 flex items-center gap-3 border-b border-brand-900/55">
@@ -127,8 +127,32 @@
         </div>
     </aside>
 
+    <!-- MOBILE BOTTOM NAVIGATION - visible on mobile, hidden on md and up -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-brand-deep border-t border-brand-900/30 text-white flex md:hidden justify-around items-center h-16 px-1 shadow-2xl">
+        <button onclick="switchTab('dashboard')" id="mobile-tab-dashboard" class="flex flex-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-bold text-brand-accent bg-brand-950/40 rounded-lg">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            <span>الرئيسية</span>
+        </button>
+        <button onclick="switchTab('upload')" id="mobile-tab-upload" class="flex flex-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-medium text-brand-200">
+            <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+            <span>الرفع</span>
+        </button>
+        <button onclick="switchTab('inventory')" id="mobile-tab-inventory" class="flex flex-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-medium text-brand-200">
+            <i data-lucide="boxes" class="w-5 h-5"></i>
+            <span>المخزن</span>
+        </button>
+        <button onclick="switchTab('picker')" id="mobile-tab-picker" class="flex flex-col items-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-medium text-brand-200">
+            <i data-lucide="package-check" class="w-5 h-5"></i>
+            <span>التحضير</span>
+        </button>
+        <button onclick="switchTab('query')" id="mobile-tab-query" class="flex flex-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-medium text-brand-200">
+            <i data-lucide="scan-line" class="w-5 h-5"></i>
+            <span>الاستعلام</span>
+        </button>
+    </nav>
+
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden relative">
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden relative pb-16 md:pb-0">
         
         <!-- Top Header Bar -->
         <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
@@ -146,7 +170,7 @@
         </header>
 
         <!-- Dynamic Tabs Content -->
-        <div class="flex-1 overflow-y-auto p-6 md:p-8" id="content-container">
+        <div class="flex-1 overflow-y-auto p-4 md:p-8" id="content-container">
 
             <!-- ================= DASHBOARD TAB ================= -->
             <section id="section-dashboard" class="space-y-6">
@@ -306,11 +330,20 @@
                     </div>
                 </div>
 
+                <!-- Mobile Upload Tabs Selector -->
+                <div class="flex md:hidden overflow-x-auto gap-2 pb-2 mb-2 border-b border-slate-200 scrollbar-none justify-start">
+                    <button onclick="switchMobileUploadCard('catalog')" id="btn-upload-tab-catalog" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-brand-deep text-white shadow-sm transition-all">1. الكتالوج</button>
+                    <button onclick="switchMobileUploadCard('shopify_images')" id="btn-upload-tab-shopify_images" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600 transition-all">2. الصور</button>
+                    <button onclick="switchMobileUploadCard('locations')" id="btn-upload-tab-locations" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600 transition-all">3. الرفوف</button>
+                    <button onclick="switchMobileUploadCard('inventory')" id="btn-upload-tab-inventory" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600 transition-all">4. التسكين</button>
+                    <button onclick="switchMobileUploadCard('shopify_orders')" id="btn-upload-tab-shopify_orders" class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600 transition-all">5. الطلبات</button>
+                </div>
+
                 <!-- 5 Upload Cards Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                     
                     <!-- 1. Catalog Upload Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                    <div id="upload-card-catalog" class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="bg-emerald-50 p-2 rounded-xl text-brand-700">
@@ -345,7 +378,7 @@
                     </div>
 
                     <!-- 2. Shopify Images Upload Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                    <div id="upload-card-shopify_images" class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="bg-pink-50 p-2 rounded-xl text-pink-600">
@@ -380,7 +413,7 @@
                     </div>
 
                     <!-- 3. Locations Upload Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                    <div id="upload-card-locations" class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="bg-blue-50 p-2 rounded-xl text-blue-600">
@@ -415,7 +448,7 @@
                     </div>
 
                     <!-- 4. Inventory Upload Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                    <div id="upload-card-inventory" class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="bg-purple-50 p-2 rounded-xl text-purple-600">
@@ -450,7 +483,7 @@
                     </div>
 
                     <!-- 5. Shopify Orders Upload Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
+                    <div id="upload-card-shopify_orders" class="bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm p-4 space-y-4">
                         <div class="space-y-3">
                             <div class="flex items-center gap-3">
                                 <div class="bg-amber-50 p-2 rounded-xl text-amber-600">
@@ -560,11 +593,11 @@
 
                     <!-- Main Dynamic Table -->
                     <div class="overflow-x-auto min-h-[350px]">
-                        <table class="w-full text-right border-collapse">
-                            <thead id="inventory-table-head">
+                        <table class="w-full text-right border-collapse block md:table">
+                            <thead id="inventory-table-head" class="hidden md:table-header-group">
                                 <!-- Dynamic Headers based on active subtab -->
                             </thead>
-                            <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-100 md:divide-y-0 block md:table-row-group text-sm font-medium text-slate-700 space-y-3 md:space-y-0 p-4 md:p-0">
                                 <!-- Dynamic records go here -->
                             </tbody>
                         </table>
@@ -715,6 +748,8 @@
             updateClock();
             setInterval(updateClock, 1000);
             initializeDatabaseConnection();
+            updateUploadCardsResponsiveState();
+            window.addEventListener('resize', updateUploadCardsResponsiveState);
         });
 
         function updateClock() {
@@ -800,17 +835,28 @@
             sections.forEach(s => {
                 const sect = document.getElementById(`section-${s}`);
                 const tabBtn = document.getElementById(`tab-${s}`);
+                const mobTabBtn = document.getElementById(`mobile-tab-${s}`);
                 
                 if (s === tabId) {
                     sect.classList.remove('hidden');
-                    tabBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-brand-900/50 text-white shadow-inner";
-                    const icon = tabBtn.querySelector('svg, i');
-                    if (icon) icon.classList.add('text-brand-accent');
+                    if (tabBtn) {
+                        tabBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-brand-900/50 text-white shadow-inner";
+                        const icon = tabBtn.querySelector('svg, i');
+                        if (icon) icon.classList.add('text-brand-accent');
+                    }
+                    if (mobTabBtn) {
+                        mobTabBtn.className = "flex flex-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-bold text-brand-accent bg-brand-950/40 rounded-lg";
+                    }
                 } else {
                     sect.classList.add('hidden');
-                    tabBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30";
-                    const icon = tabBtn.querySelector('svg, i');
-                    if (icon) icon.classList.remove('text-brand-accent');
+                    if (tabBtn) {
+                        tabBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-brand-200 hover:text-white hover:bg-brand-900/30";
+                        const icon = tabBtn.querySelector('svg, i');
+                        if (icon) icon.classList.remove('text-brand-accent');
+                    }
+                    if (mobTabBtn) {
+                        mobTabBtn.className = "flex flex-col items-center justify-center gap-1 flex-1 h-full py-1 text-[10px] font-medium text-brand-200";
+                    }
                 }
             });
 
@@ -1497,23 +1543,32 @@
             const startIdx = (currentPage - 1) * itemsPerPage;
             const endIdx = Math.min(startIdx + itemsPerPage, total);
             const paginatedItems = filteredTableData.slice(startIdx, endIdx);
-
             let html = '';
             
             if (activeInventorySubTab === 'stock') {
                 paginatedItems.forEach((item, index) => {
                     const globalIdx = startIdx + index + 1;
                     html += `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-3.5 text-xs text-slate-400 font-mono">${globalIdx.toLocaleString('ar-EG')}</td>
-                            <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
-                            <td class="px-6 py-3.5 text-right">
+                        <tr class="hover:bg-slate-50 transition-colors block md:table-row bg-white md:bg-transparent border border-slate-200/80 md:border-none rounded-2xl mb-4 p-4 shadow-sm md:shadow-none">
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 text-xs text-slate-400 font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الرقم:</span>
+                                <span>${globalIdx.toLocaleString('ar-EG')}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-semibold text-slate-800 font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الباركود:</span>
+                                <span>${item.barcode}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">معرّف الموقع (الرف):</span>
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
                                     <i data-lucide="map-pin" class="w-3 h-3 text-slate-400"></i>
                                     ${item.locationId}
                                 </span>
                             </td>
-                            <td class="px-6 py-3.5 text-left font-bold font-mono text-slate-900">${item.quantity.toLocaleString('ar-EG')}</td>
+                            <td class="px-6 py-3.5 block md:table-cell text-left md:text-left flex justify-between md:table-cell items-center pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-bold font-mono text-slate-900">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الكمية المودعة:</span>
+                                <span>${item.quantity.toLocaleString('ar-EG')}</span>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1525,11 +1580,23 @@
                         : `<div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400"><i data-lucide="shirt" class="w-5 h-5"></i></div>`;
                     
                     html += `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-3.5">${imgHtml}</td>
-                            <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
-                            <td class="px-6 py-3.5 text-right text-slate-800 font-bold">${item.productName || 'غير مسجل'}</td>
-                            <td class="px-6 py-3.5 text-left font-bold font-mono text-slate-900">${(item.systemQty || 0).toLocaleString('ar-EG')}</td>
+                        <tr class="hover:bg-slate-50 transition-colors block md:table-row bg-white md:bg-transparent border border-slate-200/80 md:border-none rounded-2xl mb-4 p-4 shadow-sm md:shadow-none">
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الصورة:</span>
+                                <span>${imgHtml}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-semibold text-slate-800 font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الباركود:</span>
+                                <span>${item.barcode}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 text-slate-800 font-bold">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">المنتج:</span>
+                                <span>${item.productName || 'غير مسجل'}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-left md:text-left flex justify-between md:table-cell items-center pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-bold font-mono text-slate-900">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الكمية النظامية:</span>
+                                <span>${(item.systemQty || 0).toLocaleString('ar-EG')}</span>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1546,13 +1613,29 @@
                     const diffPrefix = item.diff > 0 ? '+' : '';
 
                     html += `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-3.5">${imgHtml}</td>
-                            <td class="px-6 py-3.5 font-semibold text-slate-800 font-mono">${item.barcode}</td>
-                            <td class="px-6 py-3.5 text-right text-slate-800 font-bold">${item.productName}</td>
-                            <td class="px-6 py-3.5 text-center font-bold font-mono">${item.systemQty.toLocaleString('ar-EG')}</td>
-                            <td class="px-6 py-3.5 text-center font-bold font-mono">${item.shelfQty.toLocaleString('ar-EG')}</td>
-                            <td class="px-6 py-3.5 text-left font-bold font-mono">
+                        <tr class="hover:bg-slate-50 transition-colors block md:table-row bg-white md:bg-transparent border border-slate-200/80 md:border-none rounded-2xl mb-4 p-4 shadow-sm md:shadow-none">
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الصورة:</span>
+                                <span>${imgHtml}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-semibold text-slate-800 font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الباركود:</span>
+                                <span>${item.barcode}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 text-slate-800 font-bold">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">المنتج:</span>
+                                <span>${item.productName}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-bold font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الكمية النظامية:</span>
+                                <span>${item.systemQty.toLocaleString('ar-EG')}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-right flex justify-between md:table-cell items-center border-b border-slate-100 md:border-none pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-bold font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الكمية الفعلية:</span>
+                                <span>${item.shelfQty.toLocaleString('ar-EG')}</span>
+                            </td>
+                            <td class="px-6 py-3.5 block md:table-cell text-left md:text-left flex justify-between md:table-cell items-center pb-2 md:pb-3.5 pt-2 md:pt-3.5 font-bold font-mono">
+                                <span class="md:hidden text-xs text-slate-400 font-bold ml-2">الفارق:</span>
                                 <span class="inline-flex px-2 py-0.5 rounded border ${diffClass}">
                                     ${diffPrefix}${item.diff.toLocaleString('ar-EG')}
                                 </span>
@@ -1693,7 +1776,7 @@
                                     مسار تحضير مرتب جغرافيًا
                                 </span>
                             </div>
-                            <button onclick="markOrderCompleted('${orderNo}')" class="bg-brand-deep hover:bg-brand-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shadow-brand-deep/10">
+                            <button onclick="markOrderCompleted('${orderNo}')" class="bg-brand-deep hover:bg-brand-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shadow-brand-deep/10 w-full sm:w-auto justify-center">
                                 <i data-lucide="check" class="w-4 h-4"></i>
                                 تم تحضير وتعبئة الطلب بالكامل
                             </button>
@@ -1981,6 +2064,47 @@
                 console.error("Template build failure:", err);
                 alert("حدث خطأ أثناء بناء وتحميل الملف التجريبي: " + err.message);
             }
+        }
+
+        // ================= MOBILE RESPONSIVE UTILS =================
+        let activeMobileUploadCard = 'catalog';
+        
+        function switchMobileUploadCard(cardId) {
+            activeMobileUploadCard = cardId;
+            const types = ['catalog', 'shopify_images', 'locations', 'inventory', 'shopify_orders'];
+            types.forEach(t => {
+                const btn = document.getElementById(`btn-upload-tab-${t}`);
+                if (btn) {
+                    if (t === cardId) {
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-brand-deep text-white shadow-sm transition-all";
+                    } else {
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-slate-100 text-slate-600 transition-all";
+                    }
+                }
+            });
+            updateUploadCardsResponsiveState();
+        }
+
+        function updateUploadCardsResponsiveState() {
+            const isMobile = window.innerWidth < 768;
+            const types = ['catalog', 'shopify_images', 'locations', 'inventory', 'shopify_orders'];
+            types.forEach(t => {
+                const card = document.getElementById(`upload-card-${t}`);
+                if (!card) return;
+                
+                if (isMobile) {
+                    if (t === activeMobileUploadCard) {
+                        card.classList.remove('hidden');
+                        card.classList.add('flex');
+                    } else {
+                        card.classList.add('hidden');
+                        card.classList.remove('flex');
+                    }
+                } else {
+                    card.classList.remove('hidden');
+                    card.classList.add('flex');
+                }
+            });
         }
     </script>
 </body>
